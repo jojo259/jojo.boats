@@ -77,9 +77,6 @@ def itemReq(page):
 
 		argsString = fullUrl.split('?')[1]
 
-		#if argsString == '':
-		#	return render_template('items.html', content = {'items': [], 'count': 0})
-
 		print(f'argsString {argsString}')
 
 		itemsReq = itemReqApi(argsString)
@@ -142,12 +139,6 @@ def itemReqApi(page):
 
 		sendDiscord(argsString)
 
-		'''
-		open('count.txt', 'a').write('args: ' + argsString + '\n')
-		print('prev:')
-		print(open('count.txt', 'r').read()[-1000:])
-		'''
-
 		argsList = list(filter(lambda x: x != '', argsList))
 
 		print(f'argsList {argsList}')
@@ -158,16 +149,11 @@ def itemReqApi(page):
 		for curArg in argsList:
 			argSplit = curArg.split('=')
 
-			#print(f'argSplit {argSplit}')
-
 			argKey = argSplit[0]
 			argVal = argSplit[1]
 
 			if argVal == '':
 				continue
-
-			#print(f'argKey {argKey}')
-			#print(f'argVal {argVal}')
 
 			argVal = argVal.replace('%2B', '+')
 			argVal = argVal.replace('%20', ' ')
@@ -197,28 +183,15 @@ def itemReqApi(page):
 				queryOperator = '$lte'
 				argVal = argVal[:-1]
 
-			#print(f'argKey {argKey}')
-			#print(f'argVal {argVal}')
-
-			try:
+			if argVal.isnumeric():
 				argNum = int(argVal)
-			except:
-				pass
 
-			if argKey == 'nonce':
-				dbQueryAnds.append({'nonce': {queryOperator: argNum}})
-			elif argKey == 'name':
+			if argKey == 'name':
 				dbQueryAnds.append({'nameclean': argVal})
-			elif argKey == 'id':
-				dbQueryAnds.append({'id': {queryOperator: argNum}})
-			elif argKey == 'lives':
-				dbQueryAnds.append({'lives': {queryOperator: argNum}})
-			elif argKey == 'maxlives':
-				dbQueryAnds.append({'maxlives': {queryOperator: argNum}})
-			elif argKey == 'tier':
-				dbQueryAnds.append({'tier': {queryOperator: argNum}})
-			elif argKey == 'tokens':
-				dbQueryAnds.append({'tokens': {queryOperator: argNum}})
+			elif argKey == 'owner':
+				dbQueryAnds.append({'owner': argVal})
+			elif argKey in ('nonce', 'id', 'lives', 'maxlives', 'tier', 'tokens'):
+				dbQueryAnds.append({argKey: {queryOperator: argNum}})
 			elif argKey == 'gemmed':
 				if argVal == 'false':
 					dbQueryAnds.append({'gemmed': {'$exists': False}})
@@ -226,8 +199,6 @@ def itemReqApi(page):
 					dbQueryAnds.append({'gemmed': True})
 			elif argKey == 'maxhours':
 				dbQueryAnds.append({'lastsave': {'$gt': curTime - argNum * 3600}})
-			elif argKey == 'owner':
-				dbQueryAnds.append({'owner': argVal})
 			elif argKey == 'key':
 				if argVal == jojoKey:
 					dbQueryAnds.remove({'frompanda': True})
@@ -239,22 +210,12 @@ def itemReqApi(page):
 					argKey = enchNames[argKey]
 				dbQueryAnds.append({'enchpit':{'$elemMatch':{'Key': argKey, 'Level': {queryOperator: argNum}}}})
 
-		numFound = -1
-
 		if dbQueryAnds == [] or dbQueryAnds == [{'frompanda': True}]:
-			foundItems = itemsCol.find({'$and': [{'frompanda': True}, {'tokens': 8}]}).limit(100) # basic search for homepage
+			foundItems = itemsCol.find({'$and': [{'frompanda': True}, {'tokens': 8}]}).limit(100) # default search for homepage
 		else:
 			dbQuery = {'$and': dbQueryAnds}
-			#print(f'dbQuery {dbQuery}')
 
 			foundItems = itemsCol.find(dbQuery).limit(1000)
-			''' not fast enough
-			try:
-				numFound = itemsCol.count_documents(dbQuery, maxTimeMS = 1000)
-			except:
-				print('count failed')
-				pass
-			'''
 
 		foundItemsList = []
 
@@ -286,33 +247,6 @@ def itemReqApi(page):
 		returnDict['msg'] = 'fatal error ggs'
 
 		return returnDict
-
-@app.route("/api/adduuid/<path:page>", methods=['GET'])
-def addUuidPage(page):
-	def addFlagToUuid(uuidTo, flagTo, flagVal):
-		try:
-			playersCol.insert_one({'_id': uuidTo, 'persist': {flagTo: flagVal}})
-		except:
-			playerDoc = playersCol.find_one({'_id': uuidTo})
-			if 'persist' in playerDoc:
-				playerDoc['persist'][flagTo] = flagVal
-			else:
-				playerDoc['persist'] = {}
-				playerDoc['persist'][flagTo] = flagVal
-			playersCol.replace_one({'_id': uuidTo}, playerDoc)
-
-	argsString = page.lower().replace('-', '')
-
-	if not argsString.startswith(jojoKey):
-		return 'key wrong'
-
-	uuidToAdd = argsString[len(jojoKey):]
-
-	addFlagToUuid(uuidToAdd, 'fromboats', True)
-	
-	print(f'added {uuidToAdd} to db')
-
-	return 'added'
 
 pandaCache = {}
 @app.route("/api/panda", methods=['GET'])
