@@ -1,0 +1,196 @@
+<html>
+	<style>
+		@font-face {
+			font-family: "Minecraftia";
+			font-style: normal;
+			font-weight: 400;
+			src: url("/static/Minecraft-Regular.otf") format("opentype");
+		}
+		form {
+			overflow: hidden;
+		}
+		input, select {
+			float: right;
+			clear: both;
+			background-color: #999999;
+			border: 1px solid black;
+			border-radius: 2px;
+			box-sizing: border-box;
+			padding-left: 6px;
+			padding-right: 6px;
+			padding-top: 6px;
+			padding-bottom: 6px
+		}
+		div {
+			font-family: Arial;
+		}
+		div.title{
+			padding: 32px;
+			margin: 16px;
+			border-style: solid;
+			border-width: 2px;
+			border-color: #090106;
+			color: #aaaaaa;
+			background: #151515;
+			font-family: "Minecraftia";
+			font-size: 64px;
+			color: cyan;
+		}
+		div.box {
+			padding: 32px;
+			margin: 16px;
+			border-style: solid;
+			border-width: 2px;
+			border-color: #090106;
+			color: #aaaaaa;
+			background: #151515;
+			display: inline-table;
+		}
+		div.itemsbox {
+			padding: 8px;
+			margin: 16px;
+			border-style: solid;
+			border-width: 2px;
+			border-color: #090106;
+			color: #aaaaaa;
+			background: #151515;
+			display: inline-table;
+		}
+		div.searchfield {
+			padding-top: 8px;
+			padding-bottom: 8px;
+			padding-left: 32px;
+			font-size: 24;
+		}
+		div.item {
+			border: 3px solid blue;
+			border-radius: 3px;
+			overflow-wrap: break-word;
+			padding: 8px;
+			margin: 8px;
+			width: 250px;
+			background: radial-gradient(#180217, #000000);
+			color: gray;
+			font-family: Minecraftia, Arial;
+			display: inline-table;
+		}
+	</style>
+	<head>
+		<title>Pit items</title>
+		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+		<meta content="jojo.boats" property="og:title" />
+		<meta content="Pit Item Searcher" property="og:description" />
+		<meta content="#00FFFF" data-react-helmet="true" name="theme-color" />
+	</head>
+	<body style="background-color: #222222;">
+		<div class = "title">
+			jojo.boats {{ ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","💩","👻","💀","☠️","👽","👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😿","😾"][range(0, 111) | random] }}{{ ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","💩","👻","💀","☠️","👽","👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😿","😾"][range(0, 111) | random] }}{{ ["😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚","😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣","😖","😫","😩","🥺","😢","😭","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓","🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵","🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","💩","👻","💀","☠️","👽","👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😿","😾"][range(0, 111) | random] }} 
+		</div>
+		<div class = "box">
+			<form action = "../search" method = "POST">
+				<div class = "searchfield">
+					Search:
+				</div>
+				<div class = "searchfield">
+					<div class = "searchfield">
+						<label for="name">Name:</label>
+						<input type="text" id="name" name="name">
+					</div>
+					<div class = "searchfield">
+						<label for="tier">Tier:</label>
+						<input type="text" id="tier" name="tier">
+					</div>
+					<div class = "searchfield">
+						<label for="lives">Lives:</label>
+						<input type="text" id="lives" name="lives">
+					</div>
+					<div class = "searchfield">
+						<label for="maxlives">Max lives:</label>
+						<input type="text" id="maxlives" name="maxlives">
+					</div>
+					<div class = "searchfield">
+						<label for="gemmed">Gemmed:</label>
+						<select name="gemmed" id="gemmed">
+						  <option value=""></option>
+						  <option value="false">false</option>
+						  <option value="true">true</option>
+						</select>
+					</div>
+					<div class = "searchfield">
+						<label for="nonce">Nonce:</label>
+						<input type="text" id="nonce" name="nonce">
+					</div>
+					<div class = "searchfield">
+						<label for="tokens">Tokens:</label>
+						<input type="text" id="tokens" name="tokens">
+					</div>
+					<div class = "searchfield">
+						<label for="id">Id:</label>
+						<input type="text" id="id" name="id">
+					</div>
+					<div class = "searchfield">
+						<label for="enchant1">Enchant 1:</label>
+						<input type="text" id="enchant1" name="enchant1">
+					</div>
+					<div class = "searchfield">
+						<label for="enchant2">Enchant 2:</label>
+						<input type="text" id="enchant2" name="enchant2">
+					</div>
+					<div class = "searchfield">
+						<label for="enchant3">Enchant 3:&nbsp&nbsp&nbsp&nbsp</label>
+						<input type="text" id="enchant3" name="enchant3">
+					</div>
+				</div>
+				<div class = "searchfield">
+					<p><input type = "submit" value = "Search" style="font-size: 24px;"s/></p>
+				</div>
+				<div style="padding-left: 32px;">
+					all search fields are optional
+				</div>
+			</form>
+		</div>
+		<div class = "box" style = "width: 700px">
+			<b>Info:</b><br><br>
+
+			<ul>
+				<li>Name: lowercase, no special characters e.g. minicake, mysticsword, tieriiiragepants</li>
+				<li>Tier: number, 0, 1, 2, 3</li>
+				<li>Lives: number, 1 - 150</li>
+				<li>Max lives: number, 1 - 150</li>
+				<li>Gemmed: true or false</li>
+				<li>Nonce: number, 5 = aqua, 6 = dark, 8 = sewer, 9 = rage, other mystics have random nonces</li>
+				<li>Tokens: number</li>
+				<li>Id: number, minecraft item id</li>
+				<li>Enchants: enchant name + number + optional '+' or '-' e.g. regularity3, rgm2+, sweaty</li>
+			</ul>
+			<b>explanation and limitations:</b><br><br>
+			indexes players and adds all of their items to a huge list [ignores plain arrows because there are literally 5mil of them]. before it adds their items, it deletes any items in the list that the player owned. so it is constantly refreshing this list with up-to-date items. this allows it to support any items, not just unique items like mystics. however, it means that items can either appear duplicated or missing - if a player is indexed and then trades an item to another player who is then indexed, then that item will appear twice. the system makes no attempt to distinguish whether items are unique at all. in an opposite scenario, an item can be missing altogether, and will only be caught probably the next time the current owner is indexed.<br><br>
+
+			it indexes players based on some custom criteria based on the last time they were on pit. effectively if a player is on pit every day, they will get indexed every day, with the same logic scaling upwards (it's not as complex as that makes it sound). uses pitpanda'd accounts.<br><br>
+
+			you can also use this as an api, by changing http://www.jojo.boats/items/search?enchant1=regularity3,enchant2=rgm to http://www.jojo.boats/api/items/enchant1=regularity3,enchant2=rgm<br><br>
+
+			searches are limited by the indexes that the database has. you can't do very complex searches that use many of the search fields because the database can't search through all of the items fast enough. if a search is taking more than a few seconds then the database probably doesn't support that search with its current indexes so do a simpler one.
+
+			sorry the UI is so terrible LOL
+		</div>
+		<br>
+		<div class = "box">
+			<div style="padding-left: 16px;">
+				<h1>Items:</h1>
+				<h3>Count: {{content['count']}}
+				{% if content['count'] >= 1000 %}
+					<span>+</span>
+				{% endif %}
+				</h3>
+			</div>
+			<div>
+				{% autoescape false %}
+					{% for curItem in content['items']: %}
+						<div class = "item">{{curItem['text']}}</div>
+					{% endfor %}
+				{% endautoescape %}
+			</div>
+		</div>
+	</body>
+</html>
