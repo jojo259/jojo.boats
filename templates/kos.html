@@ -1,12 +1,12 @@
 <html>
-	<style> /* all styling by brookeafk */
+	<style> /* all styling by BrookeAFK she is the best person ever!!! */
 		.kos {
 			font-family: "Barlow Semi Condensed";
 			padding: 15px;
 			background-color: #323232;
 			text-align: left;
 			width: 70%;
-			margin: 0 auto;
+			margin: 10px auto;
 			height: 80px;
 		}
 
@@ -60,28 +60,92 @@
 			background-color: #a13737;
 			color: #fff;
 		}
+
+		.logo {
+        color: #5FF;
+        font-size: 30px;
+    }
+
+		.text {
+			color: #fff;
+			font-size: 20px;
+		}
+
+		textarea, input {
+			background-color: #323232;
+			color: #FFF;
+			border: 2px solid #252525;
+			border-radius: 5px;
+			font-family: 'Barlow Semi Condensed';
+			font-size: 16px;
+		}  
+
+		a:link {
+			color: #5abbb7;
+			background-color: transparent;
+			text-decoration: none;
+		}
+
+		a:visited {
+			color: #4b9b98;
+			background-color: transparent;
+			text-decoration: none;
+		}
+
+		a:hover {
+			color: #c2edee;
+			background-color: transparent;
+			text-decoration: underline;
+		}
+
+		a:active {
+			color: #ddf0f0;
+			background-color: transparent;
+			text-decoration: underline;
+		}
+
+		button {
+			all: inherit;
+			outline: 0px;
+			border-radius: 10px;
+			padding: 10px 40px 10px 40px;
+			text-align: center;
+			transition-duration: 0.3s;
+			background-color: #303030;
+		}
+		
+		button:hover {
+			background-color: #454545;
+		}
+		@font-face {
+  			font-family: 'Barlow Semi Condensed';
+  			src: url("../static/BarlowSemiCondensed-Regular.ttf");
+		}
 	</style>
 	<head>
 		<title>KOS tracker</title>
 		<link rel="shortcut icon" href="{{ url_for("static", filename="favicon.ico") }}">
 		<meta content="KOS tracker" property="og:title" />
 	</head>
-	<body>
+	<body style="background-color: #252525; font-family: Barlow Semi Condensed; margin: 30px" class="text">
+		<p class="logo">jojo.boats<span style="color:#777">/</span><span style="color: #f55">kos</p>
 		<div style="padding: 8px">
-			Saves API key and KOS list locally in cookies.
-		</div>
-		<div style="padding: 8px">
-			<label for="apikeytextbox">Api key:</label>
+			<label for="apikeytextbox"><span class='text'>Hypixel API key</span><br><span style="font-size:16px"><i><a
+				href="https://api.hypixel.net/#section/Authentication/ApiKey" target="_blank">How do I generate
+				this?</a></i></span></label>
 			<br><input id="apikeytextbox" type="text">
-			<br><br><button onclick="saveApiKey()">Save api key</button>
+			<br><br><button onclick="saveApiKey()">Save API key</button>
 		</div>
 		<div style="padding: 8px">
-			<label for="koslisttextbox">KOS list:</label>
-			<br><textarea id="koslisttextbox" rows="4" cols="64"></textarea>
+			<label for="koslisttextbox"><span class='text'>KOS list</span><br><span style="font-size: 16px"><i>Enter a list of UUIDs you'd like to track, separated by new lines.</i></span></label>
+			<br><textarea id="koslisttextbox" style="width: 400px; height: 200px"></textarea>
 			<br><br><button onclick="readKosList()">Save KOS list</button>
 		</div>
 		<div style="padding: 8px">
-			LOG:
+			<i style="font-size: 16px">jojo.boats saves your API key and KOS list as cookies, locally.</i>
+		</div><br>
+		<div style="padding: 8px">
+			Log:
 			<div id="htmllog">
 
 			</div>
