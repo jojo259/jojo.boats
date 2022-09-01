@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html>
 	<style> /* all styling by BrookeAFK she is the best person ever!!! Yes */
 		.kos {
@@ -5,7 +6,7 @@
 			padding: 15px;
 			background-color: #323232;
 			text-align: left;
-			width: 800px;
+      width: 800px;
 			margin: 10px;
 			height: 80px;
 		}
@@ -110,6 +111,7 @@
 
 		button {
 			all: inherit;
+			cursor: pointer;
 			outline: 0px;
 			border-radius: 10px;
 			padding: 10px 40px 10px 40px;
@@ -344,7 +346,7 @@
 			function saveApiKey(){
 				let apiKeyTextBoxValue = document.getElementById("apikeytextbox").value;
 
-				if (true){ // check if value matches the format of keys (length etc.)
+				if (!(apiKeyTextBoxValue == 'hidden')){ // check if value matches the format of keys (length etc.)
 					apiKey = apiKeyTextBoxValue;
 					document.cookie = `apiKey=${apiKey}`;
 
