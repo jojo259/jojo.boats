@@ -4,7 +4,7 @@
 	</style>
 	<head>
 		<title>KOS tracker</title>
-		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+		<link rel="shortcut icon" href="{{ url_for("static", filename="favicon.ico") }}">
 		<meta content="KOS tracker" property="og:title" />
 	</head>
 	<body>
@@ -29,7 +29,7 @@
 		</div>
 		<script>
 			const getCookieValue = (name) => ( // stack overflow
-				document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
+				document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)")?.pop() || ""
 			)
 
 			let apiKey = getCookieValue("apiKey");
@@ -51,7 +51,7 @@
 				console.log("");
 				console.log("checking api");
 
-				if (apiKey.length != 36){
+				if (apiKey.length < 32){
 					console.log(`hypixel api key "${apiKey}" is not real key, returning`);
 					return;
 				}
@@ -94,16 +94,34 @@
 						saveKosList();
 					}
 
-					htmlLog(`checking ${playerUsername}`);
+					//htmlLog(`checking ${playerUsername}`);
 
 					let playerPitStats = apiJson.player.stats.Pit;
 
 					let playerLastSave = playerPitStats.profile.last_save;
 
 					if (curTime - playerLastSave > 600 * 1000){ // 10 minutes
-						console.log("player hasn't been in pit in last 10 minutes, returning")
+						console.log("player hasnt been in pit in last 10 minutes, returning")
 						return;
 					}
+
+					if (!(playerUuid in playerData)){
+						playerData[playerUuid] = {};
+					}
+
+					let playerKills = playerPitStats.pit_stats_ptl.kills
+					let playerKillsOld = playerData[playerUuid]["kills"]
+					if (playerKillsOld == undefined){
+						playerKillsOld = playerKills;
+					}
+
+					let killsDiff = playerKills - playerKillsOld;
+
+					if (killsDiff > 0){
+						htmlLog(`kills increased by ${killsDiff} for ${playerUsername}`);
+					}
+
+					playerData[playerUuid]["kills"] = playerKills;
 				})
 			}
 
@@ -118,7 +136,7 @@
 			}
 			
 			function saveApiKey(){
-				let apiKeyTextBoxValue = document.getElementById('apikeytextbox').value;
+				let apiKeyTextBoxValue = document.getElementById("apikeytextbox").value;
 
 				if (true){ // check if value matches the format of keys (length etc.)
 					apiKey = apiKeyTextBoxValue;
@@ -129,7 +147,7 @@
 			}
 
 			function readKosList(){
-				let kosListTextBoxValue = document.getElementById('koslisttextbox').value;
+				let kosListTextBoxValue = document.getElementById("koslisttextbox").value;
 
 				kosList = kosListTextBoxValue.trim().split(/\s+/);
 				saveKosList();
@@ -144,12 +162,12 @@
 			}
 
 			function displayKosList(){
-				document.getElementById('koslisttextbox').value = kosList.join("\n");
+				document.getElementById("koslisttextbox").value = kosList.join("\n");
 			}
 
 			function displayApiKey(){
 				if (apiKey.length > 0){
-					document.getElementById('apikeytextbox').value = "hidden";
+					document.getElementById("apikeytextbox").value = "hidden";
 				}
 			}
 
