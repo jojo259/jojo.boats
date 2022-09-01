@@ -248,6 +248,10 @@ def itemReqApi(page):
 
 		return returnDict
 
+@app.route("/kos", methods=['GET'])
+def kosPage():
+	return render_template('kos.html')
+
 pandaCache = {}
 @app.route("/api/panda", methods=['GET'])
 def pandaApi():

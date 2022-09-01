@@ -1,0 +1,171 @@
+<html>
+	<style>
+		
+	</style>
+	<head>
+		<title>KOS tracker</title>
+		<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+		<meta content="KOS tracker" property="og:title" />
+	</head>
+	<body>
+		<div style="padding: 8px">
+			Saves API key and KOS list locally in cookies.
+		</div>
+		<div style="padding: 8px">
+			<label for="apikeytextbox">Api key:</label>
+			<br><input id="apikeytextbox" type="text">
+			<br><br><button onclick="saveApiKey()">Save api key</button>
+		</div>
+		<div style="padding: 8px">
+			<label for="koslisttextbox">KOS list:</label>
+			<br><textarea id="koslisttextbox" rows="4" cols="50"></textarea>
+			<br><br><button onclick="readKosList()">Save KOS list</button>
+		</div>
+		<div style="padding: 8px">
+			LOG:
+			<div id="htmllog">
+
+			</div>
+		</div>
+		<script>
+			const getCookieValue = (name) => ( // stack overflow
+				document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)')?.pop() || ''
+			)
+
+			let apiKey = getCookieValue("apiKey");
+			console.log(`hypixel api key is currently ${apiKey}`);
+
+			let kosList = getCookieValue("kosList");
+			kosList = kosList.split("|")
+			if (kosList == ""){
+				kosList = [];
+			}
+			console.log(`kos list (${kosList.length}) is currently ${kosList}`);
+
+			let atPlayer = 0;
+
+			let playerData = {};
+
+			setInterval(checkApi, 1000);
+			function checkApi(){
+				console.log("");
+				console.log("checking api");
+
+				if (apiKey.length != 36){
+					console.log(`hypixel api key "${apiKey}" is not real key, returning`);
+					return;
+				}
+
+				if (kosList.length < 1){
+					console.log(`no players on kos list, returning`);
+					return;
+				}
+
+				atPlayer += 1; // doesnt matter that it will initally start at 1
+				if (atPlayer > kosList.length - 1){
+					atPlayer = 0;
+				}
+
+				let playerTag = kosList[atPlayer];
+				if (playerTag.includes(".")){
+					playerTag = playerTag.split(".")[1];
+				}
+				console.log(`player tag: ${playerTag}`);
+				let apiUrl = `https://api.hypixel.net/player?key=${apiKey}&uuid=${playerTag}`;
+				if (playerTag.length < 32){
+					apiUrl = `https://api.hypixel.net/player?key=${apiKey}&name=${playerTag}`;
+				}
+
+				getApi(apiUrl).then((apiJson) => {
+					console.log(apiJson);
+
+					let curTime = Date.now();
+
+					if (!apiJson.success){
+						console.log("success false, returning");
+						return;
+					}
+
+					let playerUsername = apiJson.player.displayname;
+					let playerUuid = apiJson.player.uuid;
+					if (playerUuid != playerTag){ // newly got player uuid so save
+						console.log("saving newly found uuid");
+						kosList[kosList.indexOf(playerTag)] = playerUsername + "." + playerUuid;
+						saveKosList();
+					}
+
+					htmlLog(`checking ${playerUsername}`);
+
+					let playerPitStats = apiJson.player.stats.Pit;
+
+					let playerLastSave = playerPitStats.profile.last_save;
+
+					if (curTime - playerLastSave > 600 * 1000){ // 10 minutes
+						console.log("player hasn't been in pit in last 10 minutes, returning")
+						return;
+					}
+				})
+			}
+
+			function getApi(apiUrl){
+				console.log(`fetching ${apiUrl}`);
+
+				return fetch(apiUrl)
+				.then((response) => response.json())
+				.then((apiJson) => {
+					return apiJson;
+				});
+			}
+			
+			function saveApiKey(){
+				let apiKeyTextBoxValue = document.getElementById('apikeytextbox').value;
+
+				if (true){ // check if value matches the format of keys (length etc.)
+					apiKey = apiKeyTextBoxValue;
+					document.cookie = `apiKey=${apiKey}`;
+
+					console.log(`saved api key as ${apiKey}`);
+				}
+			}
+
+			function readKosList(){
+				let kosListTextBoxValue = document.getElementById('koslisttextbox').value;
+
+				kosList = kosListTextBoxValue.trim().split(/\s+/);
+				saveKosList();
+			}
+
+			function saveKosList(){
+				document.cookie = `kosList=${kosList.join("|")}`;
+
+				console.log(`saved kos list as ${kosList}`);
+
+				displayKosList();
+			}
+
+			function displayKosList(){
+				document.getElementById('koslisttextbox').value = kosList.join("\n");
+			}
+
+			function displayApiKey(){
+				if (apiKey.length > 0){
+					document.getElementById('apikeytextbox').value = "hidden";
+				}
+			}
+
+			function htmlLog(logStr){
+				let curDate = new Date(Date.now());
+				let curHour = curDate.getHours();
+				let curMinute = curDate.getMinutes();
+				let curSeconds = curDate.getSeconds();
+
+				let newDiv = document.createElement("div");
+				newDiv.innerText = `${curHour}:${curMinute}:${curSeconds} - ${logStr}`;
+				document.getElementById("htmllog").prepend(newDiv);
+			}
+
+			displayKosList();
+			displayApiKey();
+		</script>
+	</body>
+</html>
