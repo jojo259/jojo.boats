@@ -18,7 +18,7 @@
 		</div>
 		<div style="padding: 8px">
 			<label for="koslisttextbox">KOS list:</label>
-			<br><textarea id="koslisttextbox" rows="4" cols="50"></textarea>
+			<br><textarea id="koslisttextbox" rows="4" cols="64"></textarea>
 			<br><br><button onclick="readKosList()">Save KOS list</button>
 		</div>
 		<div style="padding: 8px">
@@ -46,7 +46,7 @@
 
 			let playerData = {};
 
-			setInterval(checkApi, 1000);
+			setInterval(checkApi, 500);
 			function checkApi(){
 				console.log("");
 				console.log("checking api");
@@ -67,10 +67,10 @@
 				}
 
 				let playerTag = kosList[atPlayer];
+				console.log(`player tag: ${playerTag}`);
 				if (playerTag.includes(".")){
 					playerTag = playerTag.split(".")[1];
 				}
-				console.log(`player tag: ${playerTag}`);
 				let apiUrl = `https://api.hypixel.net/player?key=${apiKey}&uuid=${playerTag}`;
 				if (playerTag.length < 32){
 					apiUrl = `https://api.hypixel.net/player?key=${apiKey}&name=${playerTag}`;
@@ -87,6 +87,7 @@
 					}
 
 					let playerUsername = apiJson.player.displayname;
+					console.log(`player username: ${playerUsername}`);
 					let playerUuid = apiJson.player.uuid;
 					if (playerUuid != playerTag){ // newly got player uuid so save
 						console.log("saving newly found uuid");
@@ -94,34 +95,62 @@
 						saveKosList();
 					}
 
-					//htmlLog(`checking ${playerUsername}`);
+					if (!(playerUuid in playerData)){
+						playerData[playerUuid] = {};
+					}
 
 					let playerPitStats = apiJson.player.stats.Pit;
 
 					let playerLastSave = playerPitStats.profile.last_save;
 
+					// might as well add a return here if the last_save hasnt updated
+
 					if (curTime - playerLastSave > 600 * 1000){ // 10 minutes
-						console.log("player hasnt been in pit in last 10 minutes, returning")
+						console.log("player hasnt been in pit in last 10 minutes, returning");
 						return;
 					}
 
-					if (!(playerUuid in playerData)){
-						playerData[playerUuid] = {};
-					}
+					// firstly, calculate how many kills player has got since last checked
 
-					let playerKills = playerPitStats.pit_stats_ptl.kills
-					let playerKillsOld = playerData[playerUuid]["kills"]
+					let playerKills = playerPitStats.pit_stats_ptl.kills;
+					let playerKillsOld = playerData[playerUuid]["kills"];
 					if (playerKillsOld == undefined){
 						playerKillsOld = playerKills;
 					}
 
 					let killsDiff = playerKills - playerKillsOld;
 
-					if (killsDiff > 0){
-						htmlLog(`kills increased by ${killsDiff} for ${playerUsername}`);
+					// secondly, do the (exact) same for assists
+
+					let playerAssists = playerPitStats.pit_stats_ptl.assists;
+					let playerAssistsOld = playerData[playerUuid]["assists"];
+					if (playerAssistsOld == undefined){
+						playerAssistsOld = playerAssists;
 					}
 
+					let assistsDiff = playerAssists - playerAssistsOld;
+
+					// thirdly, calculate current bounty
+
+					let playerBounties = playerPitStats.profile.bounties;
+					let totalBounty = 0;
+					for (const curBounty of playerBounties) {
+						totalBounty += curBounty.amount;
+					}
+
+					if (totalBounty == 0){
+						console.log("player has no bounty, returning");
+						return;
+					}
+
+					if (killsDiff > 0 || assistsDiff > 0){
+						htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
+					}
+
+					// save data
+
 					playerData[playerUuid]["kills"] = playerKills;
+					playerData[playerUuid]["assists"] = playerAssists;
 				})
 			}
 
@@ -163,6 +192,7 @@
 
 			function displayKosList(){
 				document.getElementById("koslisttextbox").value = kosList.join("\n");
+				document.getElementById("koslisttextbox").rows = kosList.length + 1;
 			}
 
 			function displayApiKey(){
