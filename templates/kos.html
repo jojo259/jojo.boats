@@ -346,7 +346,7 @@
 			function saveApiKey(){
 				let apiKeyTextBoxValue = document.getElementById("apikeytextbox").value;
 
-				if (!(apiKeyTextBoxValue == 'hidden')){ // check if value matches the format of keys (length etc.)
+				if (!(apiKeyTextBoxValue == 'hidden') && apiKeyTextBoxValue.length >= 32 && apiKeyTextBoxValue.length <= 36){ // check if value matches the format of keys (length etc.)
 					apiKey = apiKeyTextBoxValue;
 					document.cookie = `apiKey=${apiKey}`;
 
