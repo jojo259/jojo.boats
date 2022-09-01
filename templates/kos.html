@@ -103,14 +103,12 @@
 
 					let playerLastSave = playerPitStats.profile.last_save;
 
-					// might as well add a return here if the last_save hasnt updated
-
 					if (curTime - playerLastSave > 600 * 1000){ // 10 minutes
 						console.log("player hasnt been in pit in last 10 minutes, returning");
 						return;
 					}
 
-					// firstly, calculate how many kills player has got since last checked
+					// calculate how many kills player has got since last checked
 
 					let playerKills = playerPitStats.pit_stats_ptl.kills;
 					let playerKillsOld = playerData[playerUuid]["kills"];
@@ -120,7 +118,7 @@
 
 					let killsDiff = playerKills - playerKillsOld;
 
-					// secondly, do the (exact) same for assists
+					// do the (exact) same for assists
 
 					let playerAssists = playerPitStats.pit_stats_ptl.assists;
 					let playerAssistsOld = playerData[playerUuid]["assists"];
@@ -130,7 +128,19 @@
 
 					let assistsDiff = playerAssists - playerAssistsOld;
 
-					// thirdly, calculate current bounty
+					// save data
+
+					playerData[playerUuid]["kills"] = playerKills;
+					playerData[playerUuid]["assists"] = playerAssists;
+
+					// return if no kills or assists gained
+
+					if (killsDiff == 0 && assistsDiff == 0){
+						console.log("no kills or assists gained, returning");
+						return;
+					}
+
+					// calculate current bounty
 
 					let playerBounties = playerPitStats.profile.bounties;
 					let totalBounty = 0;
@@ -143,14 +153,7 @@
 						return;
 					}
 
-					if (killsDiff > 0 || assistsDiff > 0){
-						htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
-					}
-
-					// save data
-
-					playerData[playerUuid]["kills"] = playerKills;
-					playerData[playerUuid]["assists"] = playerAssists;
+					htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
 				})
 			}
 
@@ -191,7 +194,7 @@
 			}
 
 			function displayKosList(){
-				document.getElementById("koslisttextbox").value = kosList.join("\n");
+				document.getElementById("koslisttextbox").value = kosList.join("\n") + "\n";
 				document.getElementById("koslisttextbox").rows = kosList.length + 1;
 			}
 
