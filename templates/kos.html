@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html>
-	<style> /* all styling by BrookeAFK she is the best person ever!!! */
+	<style> /* all styling by BrookeAFK she is the best person ever!!! Yes */
 		.kos {
 			font-family: "Barlow Semi Condensed";
 			padding: 15px;
 			background-color: #323232;
 			text-align: left;
-			width: 70%;
+      width: 800px;
 			margin: 10px;
 			height: 80px;
 		}
@@ -37,6 +37,10 @@
 			color: #ff5;
 		}
 
+		.deaths {
+			color: #f5f;
+		}
+
 		.bounty {
 			color: #fa0;
 		}
@@ -47,12 +51,12 @@
 			font-size: 40px;
 			font-weight: bold;
 			transition-duration: 0.3s;
-			width: 40px;
+			width: 60px;
 			height: 80px;
 			line-height: 80px;
 			position: relative;
-			left: 95%;
-			bottom: 120px;
+			left: 90%;
+			bottom: 116px;
 			text-align: center;
 			cursor: pointer;
 		}
@@ -63,9 +67,9 @@
 		}
 
 		.logo {
-        color: #5FF;
-        font-size: 30px;
-    }
+			color: #5FF;
+			font-size: 30px;
+		}
 
 		.text {
 			color: #fff;
@@ -79,7 +83,7 @@
 			border-radius: 5px;
 			font-family: 'Barlow Semi Condensed';
 			font-size: 16px;
-		}  
+		}
 
 		a:link {
 			color: #5abbb7;
@@ -120,8 +124,8 @@
 			background-color: #454545;
 		}
 		@font-face {
-  			font-family: 'Barlow Semi Condensed';
-  			src: url("../static/BarlowSemiCondensed-Regular.ttf");
+			font-family: 'Barlow Semi Condensed';
+			src: url("/static/BarlowSemiCondensed-Regular.ttf");
 		}
 	</style>
 	<head>
@@ -147,7 +151,7 @@
 			<i style="font-size: 16px">jojo.boats saves your API key and KOS list as cookies, locally.</i>
 		</div><br>
 		<div style="padding: 8px">
-			Log:
+			KOS alerts:
 			<div id="htmllog">
 
 			</div>
@@ -158,16 +162,17 @@
 						src="https://mc-heads.net/avatar/3457688aa57c4d71ab9d22b04f9160db/512/nohelm"
 						alt="face"
 						draggable="false"
-						width="75px,"
+						width="80px,"
 						height="auto"
 					/>
 					<span id="dummykosalert-playerusername" class="name">BrookeAFK</span><br />
-					<span class="stats">
+					<span id="dummykosalert-statsspan" class="stats" title="">
 						+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
 						+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
-						<span id="dummykosalert-curbounty" class="bounty">10,000</span>g bounty
+						+<span id="dummykosalert-addeddeaths" class="deaths">999</span> deaths,
+						<span id="dummykosalert-curbounty" class="bounty">10,000</span><span class="bounty">g</span> bounty
 					</span>
-					<div class="unkos">&times;</div>
+					<div class="unkos" onclick="destroyAlert(this)">&times;</div>
 				</div>
 			</div>
 		</div>
@@ -255,8 +260,11 @@
 					// calculate how many kills player has got since last checked
 
 					let playerKills = playerPitStats.pit_stats_ptl.kills;
+					if (!Number.isFinite(playerKills)){
+						playerKills = 0;
+					}
 					let playerKillsOld = playerData[playerUuid]["kills"];
-					if (playerKillsOld == undefined){
+					if (!Number.isFinite(playerKillsOld)){
 						playerKillsOld = playerKills;
 					}
 
@@ -265,21 +273,49 @@
 					// do the (exact) same for assists
 
 					let playerAssists = playerPitStats.pit_stats_ptl.assists;
+					if (!Number.isFinite(playerAssists)){
+						playerAssists = 0;
+					}
 					let playerAssistsOld = playerData[playerUuid]["assists"];
-					if (playerAssistsOld == undefined){
+					if (!Number.isFinite(playerAssistsOld)){
 						playerAssistsOld = playerAssists;
 					}
 
 					let assistsDiff = playerAssists - playerAssistsOld;
 
+					// do the (exact) same again for deaths (this can probably be made simpler...)
+
+					let playerDeaths = playerPitStats.pit_stats_ptl.deaths;
+					if (!Number.isFinite(playerDeaths)){
+						playerDeaths = 0;
+					}
+					let playerDeathsOld = playerData[playerUuid]["deaths"];
+					if (!Number.isFinite(playerDeathsOld)){
+						playerDeathsOld = playerDeaths;
+					}
+
+					let deathsDiff = playerDeaths - playerDeathsOld;
+
 					// save data
 
 					playerData[playerUuid]["kills"] = playerKills;
 					playerData[playerUuid]["assists"] = playerAssists;
+					playerData[playerUuid]["deaths"] = playerDeaths;
 
-					// return if no kills or assists gained
+					// return if not enough kills + assists gained
 
-					if (killsDiff == 0 && assistsDiff == 0){
+					if (killsDiff + assistsDiff < 10){
+						console.log("not enough kills or assists gained, returning");
+						return;
+					}
+
+					// calculate rough streak per death number
+
+					let streakPerDeath = (killsDiff + assistsDiff * 0.3) / deathsDiff;
+
+					console.log(`streak per death = (${killsDiff} + ${assistsDiff} * 0.3) / ${deathsDiff} = ${Math.round(streakPerDeath)}`)
+
+					if (streakPerDeath < 10){
 						console.log("no kills or assists gained, returning");
 						return;
 					}
@@ -292,13 +328,8 @@
 						totalBounty += curBounty.amount;
 					}
 
-					if (totalBounty == 0){
-						console.log("player has no bounty, returning");
-						return;
-					}
-
 					//htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
-					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, totalBounty)
+					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, deathsDiff, totalBounty, streakPerDeath)
 				})
 			}
 
@@ -320,6 +351,8 @@
 					document.cookie = `apiKey=${apiKey}`;
 
 					console.log(`saved api key as ${apiKey}`);
+
+					displayApiKey()
 				}
 			}
 
@@ -340,34 +373,26 @@
 
 			function displayKosList(){
 				document.getElementById("koslisttextbox").value = kosList.join("\n") + "\n";
-				document.getElementById("koslisttextbox").rows = kosList.length + 1;
 			}
 
-			function displayApiKey(){
+			function displayApiKey(){ // does not actually display the api key (good function name)
 				if (apiKey.length > 0){
 					document.getElementById("apikeytextbox").value = "hidden";
 				}
 			}
 
-			/*
-			<span id="dummykosalert-playerusername" class="name">BrookeAFK</span><br />
-			<span class="stats">
-				+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
-				+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
-				<span id="dummykosalert-curbounty" class="bounty">10,000</span>g bounty
-			</span>
-			*/
-
-			function kosAlert(playerUuid, playerUsername, addedKills, addedAssists, curBounty){
+			function kosAlert(playerUuid, playerUsername, addedKills, addedAssists, addedDeaths, curBounty, streakPerDeath){
 
 				const newAlert = document.getElementById("dummykosalert-container").cloneNode(true);
 
 				// set new alert data
-				newAlert.querySelectorAll("#dummykosalert-playerimage")[0].src = `https://mc-heads.net/avatar/${playerUuid}/512/nohelm`;
+				newAlert.querySelectorAll("#dummykosalert-playerimage")[0].src = `https://mc-heads.net/avatar/${playerUuid}/80`;
 				newAlert.querySelectorAll("#dummykosalert-playerusername")[0].innerText = playerUsername;
 				newAlert.querySelectorAll("#dummykosalert-addedkills")[0].innerText = addedKills;
 				newAlert.querySelectorAll("#dummykosalert-addedassists")[0].innerText = addedAssists;
+				newAlert.querySelectorAll("#dummykosalert-addeddeaths")[0].innerText = addedDeaths;
 				newAlert.querySelectorAll("#dummykosalert-curbounty")[0].innerText = curBounty;
+				newAlert.querySelectorAll("#dummykosalert-statsspan")[0].title = `streakPerDeath = ${Math.round(streakPerDeath * 10) / 10}`;
 
 				newAlert.removeAttribute("hidden");
 
@@ -375,8 +400,12 @@
 
 			}
 
+			function destroyAlert(el) {
+				el.parentElement.remove();
+			}
+
 			// test kos alert
-			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 69, 20, 4000)
+			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 999, 999, 999, 20000, 42.44444)
 
 			displayKosList();
 			displayApiKey();
