@@ -5,8 +5,8 @@
 			padding: 15px;
 			background-color: #323232;
 			text-align: left;
-			width: 600px;
-			margin: 10px auto;
+			width: 800px;
+			margin: 10px;
 			height: 80px;
 		}
 
@@ -34,6 +34,10 @@
 
 		.assists {
 			color: #ff5;
+		}
+
+		.deaths {
+			color: #f5f;
 		}
 
 		.bounty {
@@ -160,10 +164,11 @@
 						height="auto"
 					/>
 					<span id="dummykosalert-playerusername" class="name">BrookeAFK</span><br />
-					<span class="stats">
+					<span id="dummykosalert-statsspan" class="stats" title="">
 						+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
 						+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
-						<span id="dummykosalert-curbounty" class="bounty">10,000</span>g bounty
+						+<span id="dummykosalert-addeddeaths" class="deaths">999</span> deaths,
+						<span id="dummykosalert-curbounty" class="bounty">10,000</span><span class="bounty">g</span> bounty
 					</span>
 					<div class="unkos" onclick="destroyAlert(this)">&times;</div>
 				</div>
@@ -253,8 +258,11 @@
 					// calculate how many kills player has got since last checked
 
 					let playerKills = playerPitStats.pit_stats_ptl.kills;
+					if (!Number.isFinite(playerKills)){
+						playerKills = 0;
+					}
 					let playerKillsOld = playerData[playerUuid]["kills"];
-					if (playerKillsOld == undefined){
+					if (!Number.isFinite(playerKillsOld)){
 						playerKillsOld = playerKills;
 					}
 
@@ -263,21 +271,49 @@
 					// do the (exact) same for assists
 
 					let playerAssists = playerPitStats.pit_stats_ptl.assists;
+					if (!Number.isFinite(playerAssists)){
+						playerAssists = 0;
+					}
 					let playerAssistsOld = playerData[playerUuid]["assists"];
-					if (playerAssistsOld == undefined){
+					if (!Number.isFinite(playerAssistsOld)){
 						playerAssistsOld = playerAssists;
 					}
 
 					let assistsDiff = playerAssists - playerAssistsOld;
 
+					// do the (exact) same again for deaths (this can probably be made simpler...)
+
+					let playerDeaths = playerPitStats.pit_stats_ptl.deaths;
+					if (!Number.isFinite(playerDeaths)){
+						playerDeaths = 0;
+					}
+					let playerDeathsOld = playerData[playerUuid]["deaths"];
+					if (!Number.isFinite(playerDeathsOld)){
+						playerDeathsOld = playerDeaths;
+					}
+
+					let deathsDiff = playerDeaths - playerDeathsOld;
+
 					// save data
 
 					playerData[playerUuid]["kills"] = playerKills;
 					playerData[playerUuid]["assists"] = playerAssists;
+					playerData[playerUuid]["deaths"] = playerDeaths;
 
-					// return if no kills or assists gained
+					// return if not enough kills + assists gained
 
-					if (killsDiff == 0 && assistsDiff == 0){
+					if (killsDiff + assistsDiff < 10){
+						console.log("not enough kills or assists gained, returning");
+						return;
+					}
+
+					// calculate rough streak per death number
+
+					let streakPerDeath = (killsDiff + assistsDiff * 0.3) / deathsDiff;
+
+					console.log(`streak per death = (${killsDiff} + ${assistsDiff} * 0.3) / ${deathsDiff} = ${Math.round(streakPerDeath)}`)
+
+					if (streakPerDeath < 10){
 						console.log("no kills or assists gained, returning");
 						return;
 					}
@@ -290,13 +326,8 @@
 						totalBounty += curBounty.amount;
 					}
 
-					if (totalBounty == 0){
-						console.log("player has no bounty, returning");
-						return;
-					}
-
 					//htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
-					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, totalBounty)
+					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, deathsDiff, totalBounty, streakPerDeath)
 				})
 			}
 
@@ -348,7 +379,7 @@
 				}
 			}
 
-			function kosAlert(playerUuid, playerUsername, addedKills, addedAssists, curBounty){
+			function kosAlert(playerUuid, playerUsername, addedKills, addedAssists, addedDeaths, curBounty, streakPerDeath){
 
 				const newAlert = document.getElementById("dummykosalert-container").cloneNode(true);
 
@@ -357,7 +388,9 @@
 				newAlert.querySelectorAll("#dummykosalert-playerusername")[0].innerText = playerUsername;
 				newAlert.querySelectorAll("#dummykosalert-addedkills")[0].innerText = addedKills;
 				newAlert.querySelectorAll("#dummykosalert-addedassists")[0].innerText = addedAssists;
+				newAlert.querySelectorAll("#dummykosalert-addeddeaths")[0].innerText = addedDeaths;
 				newAlert.querySelectorAll("#dummykosalert-curbounty")[0].innerText = curBounty;
+				newAlert.querySelectorAll("#dummykosalert-statsspan")[0].title = `streakPerDeath = ${Math.round(streakPerDeath * 10) / 10}`;
 
 				newAlert.removeAttribute("hidden");
 
@@ -370,7 +403,7 @@
 			}
 
 			// test kos alert
-			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 8, 20, 4000)
+			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 999, 999, 999, 20000, 42.44444)
 
 			displayKosList();
 			displayApiKey();
