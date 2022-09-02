@@ -25,8 +25,9 @@
 			color: #999;
 			font-weight: 900;
 			position: relative;
-			bottom: 40px;
-			left: 400px;
+			float: right;
+			top: 8px;
+			right: 80px;
 		}
 
 		.stats {
@@ -168,7 +169,7 @@
 		</div>
 		<div style="font-size: 32px">
 			KOS alerts:</div>
-		<div id="htmllog">
+		<div id="kosalerts">
 
 		</div>
 		<div id="dummykosalert-container" hidden="hidden">
@@ -178,11 +179,11 @@
 					src="https://mc-heads.net/avatar/3457688aa57c4d71ab9d22b04f9160db/512/nohelm"
 					alt="face"
 					draggable="false"
-					width="80px,"
+					width="80px"
 					height="auto"
 				/>
 				<span id="dummykosalert-playerusername" class="name">BrookeAFK</span>
-				<span id="dummykosalert-timestamp" class="timestamp">04:20</span><br />
+				<span id="dummykosalert-timestamp" class="timestamp">04:20</span><br>
 				<span id="dummykosalert-statsspan" class="stats" title="">
 					+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
 					+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
@@ -348,7 +349,6 @@
 						totalBounty += curBounty.amount;
 					}
 
-					//htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
 					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, deathsDiff, totalBounty, streakPerDeath)
 				})
 			}
@@ -447,8 +447,7 @@
 
 				newAlert.removeAttribute("hidden");
 
-				document.getElementById("htmllog").prepend(newAlert);
-
+				document.getElementById("kosalerts").prepend(newAlert);
 			}
 
 			function destroyAlert(el) {
@@ -456,7 +455,9 @@
 			}
 
 			// test kos alert
-			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 999, 999, 999, 20000, 42.44444)
+			//kosAlert("1f2e58ced9164d55bd3fa7f4a81dd09f", "JojoQ", 1, 1, 1, 1, 1)
+			//kosAlert("22", "aaaaaaaaaaaaaaaa", 1, 1, 1, 1, 1)
+			//kosAlert("69", "a", 1, 1, 1, 1, 1)
 
 			displayKosList();
 			displayApiKey();
