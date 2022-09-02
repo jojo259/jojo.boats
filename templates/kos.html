@@ -6,7 +6,7 @@
 			padding: 15px;
 			background-color: #323232;
 			text-align: left;
-      width: 800px;
+			width: 720px;
 			margin: 10px;
 			height: 80px;
 		}
@@ -16,8 +16,17 @@
 			color: #ffaa00;
 			font-weight: 900;
 			position: relative;
-			bottom: 35px;
+			bottom: 40px;
 			left: 15px;
+		}
+
+		.timestamp {
+			font-size: 24px;
+			color: #999;
+			font-weight: 900;
+			position: relative;
+			bottom: 40px;
+			left: 400px;
 		}
 
 		.stats {
@@ -135,51 +144,60 @@
 	</head>
 	<body style="background-color: #252525; font-family: Barlow Semi Condensed; margin: 30px" class="text">
 		<p class="logo">jojo.boats<span style="color:#777">/</span><span style="color: #f55">kos</p>
-		<div style="padding: 8px">
-			<label for="apikeytextbox"><span class='text'>Hypixel API key</span><br><span style="font-size:16px"><i><a
-				href="https://api.hypixel.net/#section/Authentication/ApiKey" target="_blank">How do I generate
-				this?</a></i></span></label>
-			<br><input id="apikeytextbox" type="text">
-			<br><br><button onclick="saveApiKey()">Save API key</button>
-		</div>
-		<div style="padding: 8px">
-			<label for="koslisttextbox"><span class='text'>KOS list</span><br><span style="font-size: 16px"><i>Enter a list of UUIDs you'd like to track, separated by new lines.</i></span></label>
-			<br><textarea id="koslisttextbox" style="width: 400px; height: 200px"></textarea>
-			<br><br><button onclick="readKosList()">Save KOS list</button>
-		</div>
-		<div style="padding: 8px">
-			<i style="font-size: 16px">jojo.boats saves your API key and KOS list as cookies, locally.</i>
-		</div><br>
-		<div style="padding: 8px">
-			KOS alerts:
-			<div id="htmllog">
-
+		<button onclick="hideOrShowOptions()">Hide/show options</button>
+		<div id="optionscontainer">
+			<div style="padding: 8px">
+				<label for="apikeytextbox"><span class='text'>Hypixel API key</span><br><span style="font-size:16px"><i><a
+					href="https://api.hypixel.net/#section/Authentication/ApiKey" target="_blank">How do I generate
+					this?</a></i></span></label>
+				<br><input id="apikeytextbox" type="text">
+				<br><br><button onclick="saveApiKey()">Save API key</button>
 			</div>
-			<div id="dummykosalert-container" hidden="hidden">
-				<div class="kos">
-					<img
-						id="dummykosalert-playerimage"
-						src="https://mc-heads.net/avatar/3457688aa57c4d71ab9d22b04f9160db/512/nohelm"
-						alt="face"
-						draggable="false"
-						width="80px,"
-						height="auto"
-					/>
-					<span id="dummykosalert-playerusername" class="name">BrookeAFK</span><br />
-					<span id="dummykosalert-statsspan" class="stats" title="">
-						+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
-						+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
-						+<span id="dummykosalert-addeddeaths" class="deaths">999</span> deaths,
-						<span id="dummykosalert-curbounty" class="bounty">10,000</span><span class="bounty">g</span> bounty
-					</span>
-					<div class="unkos" onclick="destroyAlert(this)">&times;</div>
-				</div>
+			<div style="padding: 8px">
+				<label for="koslisttextbox"><span class='text'>KOS list</span><br><span style="font-size: 16px"><i>Enter a list of UUIDs you'd like to track, separated by new lines.</i></span></label>
+				<br><textarea id="koslisttextbox" style="width: 400px; height: 200px"></textarea>
+				<br><br><button onclick="readKosList()">Save KOS list</button>
+			</div>
+			<div style="padding: 8px; font-size: 16px; font-style: italic;">
+				jojo.boats saves your API key and KOS list as cookies, locally.
+				<br>You should also save your API key and KOS list somewhere in case they get deleted.
+			</div>
+			<div style="padding: 8px">
+				Latest log: <span id="latestlog"></span>
+			</div>
+		</div>
+		<div style="font-size: 32px">
+			KOS alerts:</div>
+		<div id="htmllog">
+
+		</div>
+		<div id="dummykosalert-container" hidden="hidden">
+			<div class="kos">
+				<img
+					id="dummykosalert-playerimage"
+					src="https://mc-heads.net/avatar/3457688aa57c4d71ab9d22b04f9160db/512/nohelm"
+					alt="face"
+					draggable="false"
+					width="80px,"
+					height="auto"
+				/>
+				<span id="dummykosalert-playerusername" class="name">BrookeAFK</span>
+				<span id="dummykosalert-timestamp" class="timestamp">04:20</span><br />
+				<span id="dummykosalert-statsspan" class="stats" title="">
+					+<span id="dummykosalert-addedkills" class="kills">999</span> kills,
+					+<span id="dummykosalert-addedassists" class="assists">999</span> assists,
+					+<span id="dummykosalert-addeddeaths" class="deaths">999</span> deaths,
+					<span id="dummykosalert-curbounty" class="bounty">10,000</span><span class="bounty">g</span> bounty
+				</span>
+				<div class="unkos" onclick="destroyAlert(this)">&times;</div>
 			</div>
 		</div>
 		<script>
 			const getCookieValue = (name) => ( // stack overflow
 				document.cookie.match("(^|;)\\s*" + name + "\\s*=\\s*([^;]+)")?.pop() || ""
 			)
+
+			let optionsVisible = true;
 
 			let apiKey = getCookieValue("apiKey");
 			console.log(`hypixel api key is currently ${apiKey}`);
@@ -195,18 +213,20 @@
 
 			let playerData = {};
 
-			setInterval(checkApi, 500);
+			setInterval(checkApi, 500); // 120/min to saturate api limit
 			function checkApi(){
 				console.log("");
 				console.log("checking api");
 
-				if (apiKey.length < 32){
-					console.log(`hypixel api key "${apiKey}" is not real key, returning`);
+				if (apiKey.length < 32 || apiKey.length > 36){
+					displayLog(`api key is not real key, returning`);
 					return;
 				}
 
+				console.log(kosList)
+
 				if (kosList.length < 1){
-					console.log(`no players on kos list, returning`);
+					displayLog(`no players on kos list, returning`);
 					return;
 				}
 
@@ -216,7 +236,7 @@
 				}
 
 				let playerTag = kosList[atPlayer];
-				console.log(`player tag: ${playerTag}`);
+				displayLog(`player tag: ${playerTag}`);
 				if (playerTag.includes(".")){
 					playerTag = playerTag.split(".")[1];
 				}
@@ -231,7 +251,7 @@
 					let curTime = Date.now();
 
 					if (!apiJson.success){
-						console.log("success false, returning");
+						displayLog("api success false, returning");
 						return;
 					}
 
@@ -253,7 +273,7 @@
 					let playerLastSave = playerPitStats.profile.last_save;
 
 					if (curTime - playerLastSave > 600 * 1000){ // 10 minutes
-						console.log("player hasnt been in pit in last 10 minutes, returning");
+						displayLog("player hasnt been in pit in last 10 minutes, returning");
 						return;
 					}
 
@@ -305,7 +325,7 @@
 					// return if not enough kills + assists gained
 
 					if (killsDiff + assistsDiff < 10){
-						console.log("not enough kills or assists gained, returning");
+						displayLog("not enough kills or assists gained, returning");
 						return;
 					}
 
@@ -313,10 +333,10 @@
 
 					let streakPerDeath = (killsDiff + assistsDiff * 0.3) / deathsDiff;
 
-					console.log(`streak per death = (${killsDiff} + ${assistsDiff} * 0.3) / ${deathsDiff} = ${Math.round(streakPerDeath)}`)
+					displayLog(`streak per death = (${killsDiff} + ${assistsDiff} * 0.3) / ${deathsDiff} = ${Math.round(streakPerDeath)}`)
 
 					if (streakPerDeath < 10){
-						console.log("no kills or assists gained, returning");
+						displayLog("no kills or assists gained, returning");
 						return;
 					}
 
@@ -331,6 +351,23 @@
 					//htmlLog(`player ${playerUsername} gained ${killsDiff} kills and ${assistsDiff} assists with a bounty of ${totalBounty}g`);
 					kosAlert(playerUuid, playerUsername, killsDiff, assistsDiff, deathsDiff, totalBounty, streakPerDeath)
 				})
+			}
+
+			function hideOrShowOptions(){
+				if (optionsVisible){
+					document.getElementById("optionscontainer").setAttribute("hidden","");
+				}
+				else{
+					document.getElementById("optionscontainer").removeAttribute("hidden");
+				}
+				optionsVisible = !optionsVisible
+			}
+
+			function displayLog(logStr){
+				console.log(logStr);
+				if (optionsVisible){
+					document.getElementById("latestlog").innerText = logStr;
+				}
 			}
 
 			function getApi(apiUrl){
@@ -348,12 +385,22 @@
 
 				if (!(apiKeyTextBoxValue == 'hidden') && apiKeyTextBoxValue.length >= 32 && apiKeyTextBoxValue.length <= 36){ // check if value matches the format of keys (length etc.)
 					apiKey = apiKeyTextBoxValue;
-					document.cookie = `apiKey=${apiKey}`;
+					document.cookie = `apiKey=${apiKey}; ${getCookieExpireDateString()}`;
 
 					console.log(`saved api key as ${apiKey}`);
 
 					displayApiKey()
 				}
+			}
+
+			function getCookieExpireDateString(){
+				let expDays = 7; // cookies expire after 7 days
+
+				let date = new Date();
+		        date.setTime(date.getTime() + (expDays * 24 * 60 * 60 * 1000));
+		        const expires = "expires=" + date.toUTCString();
+
+		        return expires;
 			}
 
 			function readKosList(){
@@ -364,7 +411,7 @@
 			}
 
 			function saveKosList(){
-				document.cookie = `kosList=${kosList.join("|")}`;
+				document.cookie = `kosList=${kosList.join("|")}; ${getCookieExpireDateString()}`;
 
 				console.log(`saved kos list as ${kosList}`);
 
@@ -384,6 +431,10 @@
 			function kosAlert(playerUuid, playerUsername, addedKills, addedAssists, addedDeaths, curBounty, streakPerDeath){
 
 				const newAlert = document.getElementById("dummykosalert-container").cloneNode(true);
+
+				let curDate = new Date(Date.now());
+				let curHour = curDate.getHours();
+				let curMinute = curDate.getMinutes();
 
 				// set new alert data
 				newAlert.querySelectorAll("#dummykosalert-playerimage")[0].src = `https://mc-heads.net/avatar/${playerUuid}/80`;
