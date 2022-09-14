@@ -18,6 +18,7 @@ moctezuma gold_strictly_kills
 exe melee_execute
 executioner melee_execute
 gb gold_boost
+gboost gold_boost
 goldboost gold_boost
 gheart absorption_on_kill
 ghearts absorption_on_kill
