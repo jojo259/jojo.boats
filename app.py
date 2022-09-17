@@ -21,6 +21,7 @@ app = Flask(__name__)
 webhookUrl = os.environ['webhookurl']
 
 jojoKey = os.environ['jojokey']
+noLimitKey = os.environ['nolimitkey']
 
 print('connecting')
 import pymongo
@@ -146,6 +147,8 @@ def itemReqApi(page):
 		dbQueryAnds = []
 		dbQueryAnds.append({'frompanda': True}) # removed later if correct key
 
+		returnItemsLimit = 1000
+
 		for curArg in argsList:
 			argSplit = curArg.split('=')
 
@@ -205,6 +208,8 @@ def itemReqApi(page):
 				if argVal == jojoKey + 'no':
 					dbQueryAnds.remove({'frompanda': True})
 					dbQueryAnds.append({'frompanda': {'$exists': False}})
+				if argVal == noLimitKey:
+					returnItemsLimit = 99999999999
 			else:
 				if argKey in enchNames:
 					argKey = enchNames[argKey]
@@ -215,7 +220,7 @@ def itemReqApi(page):
 		else:
 			dbQuery = {'$and': dbQueryAnds}
 
-			foundItems = itemsCol.find(dbQuery).limit(1000)
+			foundItems = itemsCol.find(dbQuery).limit(returnItemsLimit + 1) # (bc idk if mongodb is actually aware whether it returned all the documents or the .limit actually kicked in so that's just detected below)
 
 		foundItemsList = []
 
@@ -223,8 +228,8 @@ def itemReqApi(page):
 
 		numFound = 0
 		for curItem in foundItems:
-			if numFound >= 1000: # redundant due to .limit(1000)
-				returnMsg = 'too many! first 1k given'
+			if numFound >= returnItemsLimit: # ^ read above
+				returnMsg = f'too many! first {numFound} items given'
 				break
 			curItem['_id'] = str(curItem['_id'])
 			foundItemsList.append(curItem)
