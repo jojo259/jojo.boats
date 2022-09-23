@@ -6,6 +6,7 @@ notglad less_damage_nearby_players
 notgladiator less_damage_nearby_players
 mir immune_true_damage
 mirror immune_true_damage
+mirrors immune_true_damage
 insta instaboom_tnt
 instaboom instaboom_tnt
 tp trash_panda
@@ -112,6 +113,8 @@ combo:damage melee_combo_damage
 speedy etspeed_on_kill
 speedykill etspeed_on_kill
 cs melee_stun
+stun melee_stun
+combostun melee_stun
 combo:stun melee_stun
 js jump_spammer
 jumpspammer jump_spammer

@@ -208,7 +208,8 @@ def itemReqApi(page):
 				if argVal == jojoKey + 'no':
 					dbQueryAnds.remove({'frompanda': True})
 					dbQueryAnds.append({'frompanda': {'$exists': False}})
-				if argVal == noLimitKey:
+
+				if argVal == noLimitKey or argVal == jojoKey:
 					returnItemsLimit = 99999999999
 			else:
 				if argKey in enchNames:
