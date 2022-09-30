@@ -22,6 +22,7 @@ webhookUrl = os.environ['webhookurl']
 
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
+playersApiKey = os.environ['playersapikey']
 
 print('connecting')
 import pymongo
@@ -294,6 +295,40 @@ def pandaApi():
 	print('returning api got')
 
 	return pandaApiGot
+
+cachedUuidsStr = 'null'
+@app.route("/api/sendplayers", methods=['GET']) # sussy stuff
+def sendPlayersApi():
+	print('players sent')
+
+	requestKey = request.headers.get('reqkey')
+
+	if requestKey != playersApiKey:
+		print('key wrong')
+		return 'key wrong'
+
+	uuidsStr = request.headers.get('uuids')
+
+	if uuidsStr == None:
+		print('no uuids string')
+		return 'no uuids string'
+
+	global cachedUuidsStr
+	cachedUuidsStr = uuidsStr
+
+	return 'success'
+
+@app.route("/api/getplayers", methods=['GET'])
+def getPlayersApi():
+	print('players requested')
+
+	requestKey = request.headers.get('reqkey')
+
+	if requestKey != playersApiKey:
+		print('key wrong')
+		return 'key wrong'
+
+	return cachedUuidsStr
 
 @app.route('/favicon.ico')
 def favicon():
