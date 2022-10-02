@@ -88,7 +88,7 @@ def itemReq(page):
 
 		curTime = time.time()
 
-		def itemFormat(itemTo):
+		def itemFormat(itemTo): # me when i manually construct html
 			returnStr = ''
 
 			if 'name' in itemTo:
@@ -103,9 +103,8 @@ def itemReq(page):
 				returnStr += ' <span style="color: #55FFFF"> [NOPANDA] </span>'
 			saveStr = ''
 			if 'lastsave' in itemTo:
-				lastSaveHoursAgo = int((curTime - itemTo['lastsave']) / 60 / 60)
-				lastSaveHoursAgo = min(999, lastSaveHoursAgo)
-				saveStr = replaceColors(f'§8Seen in Pit {str(lastSaveHoursAgo)} hrs ago')
+				itemLastSave = itemTo['lastsave']
+				saveStr = replaceColors(f'§8Seen in Pit {prettyDate(itemLastSave)}')
 				#saveStr = str(itemTo['lastsave'])
 			if 'lore' in itemTo:
 				returnStr += '<br>'
@@ -384,3 +383,70 @@ def replaceColors(repStr):
 	except Exception as e:
 		print(e)
 		return ''
+
+def prettyDate(theTime):
+	curTime = time.time()
+
+	diffStr = f'ERROR <{theTime}>'
+
+	timeDiff = theTime - curTime
+
+	diffNum = 0
+	if timeDiff > 0: # future
+		if timeDiff < 1:
+			diffNum = int(timeDiff)
+			diffStr = f'right now'
+		elif timeDiff < 60:
+			diffNum = int(timeDiff)
+			diffStr = f'in {diffNum} second[POTENTIALCHAR]'
+		elif timeDiff < 60 * 60: # minutes
+			diffNum = int(timeDiff / 60)
+			diffStr = f'in {diffNum} minute[POTENTIALCHAR]'
+		elif timeDiff < 60 * 60 * 24: # hours
+			diffNum = int(timeDiff / 60 / 60)
+			diffStr = f'in {diffNum} hour[POTENTIALCHAR]'
+		elif timeDiff < 60 * 60 * 24 * 7: # days
+			diffNum = int(timeDiff / 60 / 60 / 24)
+			diffStr = f'in {diffNum} day[POTENTIALCHAR]'
+		elif timeDiff < 60 * 60 * 24 * 30: # weeks
+			diffNum = int(timeDiff / 60 / 60 / 24 / 7)
+			diffStr = f'in {diffNum} week[POTENTIALCHAR]'
+		elif timeDiff < 60 * 60 * 24 * 365: # months
+			diffNum = int(timeDiff / 60 / 60 / 24 / 30)
+			diffStr = f'in {diffNum} month[POTENTIALCHAR]'
+		else: # years
+			diffNum = int(timeDiff / 60 / 60 / 24 / 365)
+			diffStr = f'in {diffNum} year[POTENTIALCHAR]'
+	else: # past
+		timeDiff = timeDiff * -1
+		if timeDiff < 1:
+			diffNum = int(timeDiff)
+			diffStr = f'right now'
+		elif timeDiff < 60:
+			diffNum = int(timeDiff)
+			diffStr = f'{diffNum} second[POTENTIALCHAR] ago'
+		elif timeDiff < 60 * 60: # minutes
+			diffNum = int(timeDiff / 60)
+			diffStr = f'{diffNum} minute[POTENTIALCHAR] ago'
+		elif timeDiff < 60 * 60 * 24: # hours
+			diffNum = int(timeDiff / 60 / 60)
+			diffStr = f'{diffNum} hour[POTENTIALCHAR] ago'
+		elif timeDiff < 60 * 60 * 24 * 7: # days
+			diffNum = int(timeDiff / 60 / 60 / 24)
+			diffStr = f'{diffNum} day[POTENTIALCHAR] ago'
+		elif timeDiff < 60 * 60 * 24 * 30: # weeks
+			diffNum = int(timeDiff / 60 / 60 / 24 / 7)
+			diffStr = f'{diffNum} week[POTENTIALCHAR] ago'
+		elif timeDiff < 60 * 60 * 24 * 365: # months
+			diffNum = int(timeDiff / 60 / 60 / 24 / 30)
+			diffStr = f'{diffNum} month[POTENTIALCHAR] ago'
+		else: # years
+			diffNum = int(timeDiff / 60 / 60 / 24 / 365)
+			diffStr = f'{diffNum} year[POTENTIALCHAR] ago'
+
+	if diffNum > 1:
+		diffStr = diffStr.replace('[POTENTIALCHAR]', 's')
+	else:
+		diffStr = diffStr.replace('[POTENTIALCHAR]', '')
+
+	return diffStr
