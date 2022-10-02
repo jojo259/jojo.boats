@@ -203,6 +203,8 @@ def itemReqApi(page):
 					dbQueryAnds.append({'gemmed': True})
 			elif argKey == 'maxhours':
 				dbQueryAnds.append({'lastsave': {'$gt': curTime - argNum * 3600}})
+			elif argKey == 'minhours':
+				dbQueryAnds.append({'lastsave': {'$lt': curTime - argNum * 3600}})
 			elif argKey == 'key':
 				if argVal == jojoKey:
 					dbQueryAnds.remove({'frompanda': True})
