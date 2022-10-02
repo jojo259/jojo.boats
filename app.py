@@ -204,6 +204,11 @@ def itemReqApi(page):
 				dbQueryAnds.append({'lastsave': {'$gt': curTime - argNum * 3600}})
 			elif argKey == 'minhours':
 				dbQueryAnds.append({'lastsave': {'$lt': curTime - argNum * 3600}})
+			elif argKey == 'haslore':
+				if argVal == 'true':
+					dbQueryAnds.append({'lore': {'$exists': True}})
+				else:
+					dbQueryAnds.append({'lore': {'$exists': False}})
 			elif argKey == 'key':
 				if argVal == jojoKey:
 					dbQueryAnds.remove({'frompanda': True})
