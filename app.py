@@ -209,6 +209,8 @@ def itemReqApi(page):
 					dbQueryAnds.append({'lore': {'$exists': True}})
 				else:
 					dbQueryAnds.append({'lore': {'$exists': False}})
+			elif argKey == 'limit':
+				returnItemsLimit = min(returnItemsLimit, int(argVal))
 			elif argKey == 'key':
 				if argVal == jojoKey:
 					dbQueryAnds.remove({'frompanda': True})
