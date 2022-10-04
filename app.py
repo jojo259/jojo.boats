@@ -215,7 +215,8 @@ def itemReqApi(page):
 			elif argKey == 'count': # special count logic
 
 				if argVal == 'true':
-					dbQueryAnds.remove({'frompanda': True})
+					if {'frompanda': True} in dbQueryAnds:
+						dbQueryAnds.remove({'frompanda': True})
 					dbQuery = {'$and': dbQueryAnds}
 
 					print('counting')
@@ -234,9 +235,11 @@ def itemReqApi(page):
 
 			elif argKey == 'key':
 				if argVal == jojoKey:
-					dbQueryAnds.remove({'frompanda': True})
+					if {'frompanda': True} in dbQueryAnds:
+						dbQueryAnds.remove({'frompanda': True})
 				if argVal == jojoKey + 'no':
-					dbQueryAnds.remove({'frompanda': True})
+					if {'frompanda': True} in dbQueryAnds:
+						dbQueryAnds.remove({'frompanda': True})
 					dbQueryAnds.append({'frompanda': {'$exists': False}})
 
 				if argVal == noLimitKey or argVal == jojoKey:
