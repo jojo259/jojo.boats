@@ -211,6 +211,27 @@ def itemReqApi(page):
 					dbQueryAnds.append({'lore': {'$exists': False}})
 			elif argKey == 'limit':
 				returnItemsLimit = min(returnItemsLimit, int(argVal))
+
+			elif argKey == 'count': # special count logic
+
+				if argVal == 'true':
+					dbQueryAnds.remove({'frompanda': True})
+					dbQuery = {'$and': dbQueryAnds}
+
+					print('counting')
+					numFound = itemsCol.count_documents(dbQuery)
+					print('counted')
+
+					returnDict = {}
+					returnDict['success'] = True
+					returnDict['msg']   = 'counted'
+					returnDict['count'] = numFound
+					returnDict['items'] = []
+
+					print(f'counted {numFound} items')
+
+					return returnDict
+
 			elif argKey == 'key':
 				if argVal == jojoKey:
 					dbQueryAnds.remove({'frompanda': True})
