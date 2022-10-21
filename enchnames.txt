@@ -104,9 +104,10 @@ peroxide regen_when_hit
 billy less_damage_when_high_bounty
 soli solitude
 cd melee_combo_damage
-cdmg melee_combo_damage
+cmd melee_combo_damage
 cmg melee_combo_damage
 cdg melee_combo_damage
+cdmg melee_combo_damage
 combod melee_combo_damage
 combodamage melee_combo_damage
 combo:damage melee_combo_damage
@@ -254,6 +255,7 @@ luckofthepond luck_of_the_pond
 goldenhandcuffs golden_handcuffs
 evilwithin evil_within
 retrogravitymicrocosm rgm
+pap paparazzi
 papa paparazzi
 vol volley
 voll volley
