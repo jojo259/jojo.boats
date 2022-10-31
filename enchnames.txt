@@ -91,6 +91,7 @@ respawn:absorption respawn_with_absorption
 steaks steaks_on_kill
 gam melee_gamble
 gamble melee_gamble
+duel melee_strike_after_block
 duelist melee_strike_after_block
 clubrod fishing_rod_enchant
 portablepond water_bucket
