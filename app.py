@@ -31,6 +31,7 @@ dbClient = pymongo.MongoClient(mongoConnectString)
 curDb = dbClient['hypixel']
 playersCol = curDb['pitplayers']
 itemsCol = curDb['pititems']
+discordsCol = curDb['pitdiscords']
 print('connected')
 
 enchNames = {}
@@ -361,6 +362,25 @@ def getPlayersApi():
 		return 'key wrong'
 
 	return cachedUuidsStr
+
+@app.route("/api/checkdiscord/<discordId>", methods=['GET'])
+def checkDiscordRoute(discordId):
+	print('check discord')
+
+	if not discordId.isnumeric():
+		return {'success': False, 'uuid': None, 'message': 'invalid discord id - not numeric'}
+
+	discordId = int(discordId)
+
+	discordDoc = discordsCol.find_one({'_id': discordId})
+
+	if discordDoc == None:
+		return {'success': True, 'uuid': None, 'message': 'no user found'}
+
+	playerUuid = discordDoc.get('uuid')
+	playerMaybeUsername = discordDoc.get('username', '')
+
+	return {'success': True, 'uuid': playerUuid, 'maybeusername': playerMaybeUsername, 'message': 'found user'}
 
 @app.route("/api/enchnames", methods=['GET'])
 def enchNamesApi():
