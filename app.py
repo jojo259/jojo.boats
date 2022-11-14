@@ -99,6 +99,10 @@ def itemReq(page):
 					returnStr += 'Id: ' + replaceColors(itemTo['id']) + '<br>'
 			if 'nonce' in itemTo:
 				returnStr += f'<!-- Nonce: {itemTo["nonce"]} -->'
+
+			# damn this surrounding code is soooooo dumb
+			returnStr += f'<!-- UUID: {itemTo.get("owner")} -->'
+
 			returnStr += replaceColors('§8Owner: ' + itemTo['ownerusername'])
 			if 'frompanda' not in itemTo:
 				returnStr += ' <span style="color: #55FFFF"> [NOPANDA] </span>'
