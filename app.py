@@ -384,7 +384,9 @@ def checkDiscordRoute(discordId):
 	playerUuid = discordDoc.get('uuid')
 	playerMaybeUsername = discordDoc.get('username', '')
 
-	return {'success': True, 'uuid': playerUuid, 'maybeusername': playerMaybeUsername, 'message': 'found user'}
+	playerMutualServers = len(discordDoc.get('guilds', []))
+
+	return {'success': True, 'uuid': playerUuid, 'maybeusername': playerMaybeUsername, 'abyssbotmutualservers': playerMutualServers, 'message': 'found user'}
 
 @app.route("/api/enchnames", methods=['GET'])
 def enchNamesApi():
