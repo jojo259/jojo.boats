@@ -11,11 +11,18 @@ import time
 import random
 import requests
 import os
+import io
+import re
+import PIL
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+from PIL import ImageColor
 
 from dotenv import load_dotenv
 load_dotenv()
 
-from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect
+from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect, send_file
 app = Flask(__name__)
 
 webhookUrl = os.environ['webhookurl']
@@ -23,6 +30,10 @@ webhookUrl = os.environ['webhookurl']
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
 playersApiKey = os.environ['playersapikey']
+
+debugMode = False
+if 'debugmode' in os.environ:
+	debugMode = True
 
 print('connecting')
 import pymongo
@@ -143,7 +154,8 @@ def itemReqApi(page):
 		argsString = page.lower()
 		argsList = argsString.split(',')
 
-		sendDiscord(argsString)
+		if not debugMode:
+			sendDiscord(argsString)
 
 		argsList = list(filter(lambda x: x != '', argsList))
 
@@ -291,6 +303,89 @@ def itemReqApi(page):
 		returnDict['msg'] = 'fatal error ggs'
 
 		return returnDict
+
+@app.route("/api/itemimage", methods=['GET'])
+def itemImageRoute():
+
+	# get data
+
+	textDelimiter = ',,,'
+
+	itemLines = request.args.get('text', f'abc').split(textDelimiter)
+	imageScale = request.args.get('scale') # minimum 4 for 1 pixel per minecraft font pixel, prob 8 recommended (multiples of 4 to match the minecraft font pixels)
+
+	if imageScale == None:
+		imageScale = 8
+	else:
+		imageScale = int(imageScale)
+
+	# data
+
+	maxImageSize = imageScale * 128 # idk that's like 4k i guess
+
+	textSize = 3 * imageScale
+	boxPadding = imageScale
+
+	minecraftFontRegular = ImageFont.truetype('static/MinecraftRegular.otf', textSize)
+	minecraftFontBold = ImageFont.truetype('static/MinecraftBold.otf', textSize)
+	minecraftFontItalic = ImageFont.truetype('static/MinecraftItalic.otf', textSize)
+	minecraftFontBoldItalic = ImageFont.truetype('static/MinecraftBoldItalic.otf', textSize)
+
+	# create image, mildly yoinked from https://github.com/PitPanda/PitPandaProduction/blob/master/imageApi/index.js
+
+	itemImage = PIL.Image.new('RGB', (maxImageSize, maxImageSize), color = (18, 2, 17))
+	drawObj = ImageDraw.Draw(itemImage)
+
+	imageWidth = min(maxImageSize, boxPadding * 2 + max(list(map(lambda curLine: drawObj.textlength(re.sub(r'§.', '', curLine), font = minecraftFontRegular), itemLines))))
+	imageHeight = min(maxImageSize, len(itemLines) * textSize + boxPadding * 2)
+	itemImage = itemImage.crop((0, 0, imageWidth, imageHeight))
+	drawObj = ImageDraw.Draw(itemImage) # kinda lost but whatever
+
+	# item outline
+
+	outlineWidth = 8
+	drawObj.rectangle([(0, 0), (imageWidth - 1, imageHeight - 1)], outline = (37, 1, 91), width = int(imageScale / 4))
+
+	# text
+
+	for atLine, curLine in enumerate(itemLines):
+		curColor = (170, 170, 170)
+		atX = boxPadding
+
+		for curWord in curLine.split(' '):
+
+			curWord = curWord + ' ' # add back missing space from split and add placeholder white color code
+
+			atColorCode = False
+
+			for curChar in curWord: # too lazy to not just go char by char
+
+				if curChar == '❤':
+					curChar = '♥' # ascii heart instead of emoji
+
+				# check for color code
+
+				if curChar == '§':
+					atColorCode = True
+					continue
+
+				if atColorCode:
+					atColorCode = False
+					minecraftColorCodes = {'4': '#AA0000', 'c': '#FF5555', '6': '#FFAA00', 'e': '#FFFF55', '2': '#00AA00', 'a': '#55FF55', 'b': '#55FFFF', '3': '#00AAAA', '1': '#0000AA', '9': '#5555FF', 'd': '#FF55FF', '5': '#AA00AA', 'f': '#FFFFFF', '7': '#AAAAAA', '8': '#555555', '0': '#000000'}
+					curColor = ImageColor.getcolor(minecraftColorCodes.get(curChar, '#CCC'), 'RGB')
+					continue
+
+				drawObj.text((atX + imageScale / 4, atLine * textSize + boxPadding + imageScale / 4), curChar, font = minecraftFontRegular, fill = tuple(map(lambda x: int(x / 4), curColor))) # shadow
+				drawObj.text((atX, atLine * textSize + boxPadding), curChar, font = minecraftFontRegular, fill = curColor)
+				atX += drawObj.textlength(curChar, font = minecraftFontRegular)
+
+	return serve_pil_image(itemImage)
+
+def serve_pil_image(pil_img): # https://stackoverflow.com/a/51986716
+    img_io = io.BytesIO()
+    pil_img.save(img_io, 'PNG')
+    img_io.seek(0)
+    return send_file(img_io, mimetype='image/png')
 
 @app.route("/kos", methods=['GET'])
 def kosPage():
