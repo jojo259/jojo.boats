@@ -305,12 +305,14 @@ def itemReqApi(page):
 
 		return returnDict
 
+sentImages = {}
 @app.route("/api/itemimage", methods=['GET'])
 def itemImageRoute():
 
 	# log
 
-	if not debugMode:
+	if not debugMode and request.url not in sentImages:
+		sentImages[request.url] = True
 		sendDiscord(request.url, webhookUrlImages)
 
 	# get data
