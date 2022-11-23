@@ -25,7 +25,8 @@ load_dotenv()
 from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect, send_file
 app = Flask(__name__)
 
-webhookUrl = os.environ['webhookurl']
+webhookUrlSearches = os.environ['webhookurlsearches']
+webhookUrlImages = os.environ['webhookurlimages']
 
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
@@ -155,7 +156,7 @@ def itemReqApi(page):
 		argsList = argsString.split(',')
 
 		if not debugMode:
-			sendDiscord(argsString)
+			sendDiscord(argsString, webhookUrlSearches)
 
 		argsList = list(filter(lambda x: x != '', argsList))
 
@@ -306,6 +307,11 @@ def itemReqApi(page):
 
 @app.route("/api/itemimage", methods=['GET'])
 def itemImageRoute():
+
+	# log
+
+	if not debugMode:
+		sendDiscord(request.url, webhookUrlImages)
 
 	# get data
 
@@ -491,9 +497,9 @@ def enchNamesApi():
 def favicon():
 	return app.send_static_file('favicon.ico')
 
-def sendDiscord(toSend):
+def sendDiscord(toSend, hookUrl):
 	def sendDiscordPart(partToSend):
-		url = webhookUrl
+		url = hookUrl
 		data = {}
 		data["username"] = "jojo.boats"
 		data["content"] = partToSend
