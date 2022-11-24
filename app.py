@@ -4,7 +4,7 @@ dont know if i will bother to improve any of it as it just about works
 enjoy
 '''
 
-print('init')
+print('init app')
 
 import json
 import time
@@ -13,6 +13,7 @@ import requests
 import os
 import io
 import re
+import threading
 import PIL
 from PIL import Image
 from PIL import ImageDraw
@@ -36,7 +37,9 @@ debugMode = False
 if 'debugmode' in os.environ:
 	debugMode = True
 
-print('connecting')
+import discordsender
+
+print('connecting to db')
 import pymongo
 mongoConnectString = os.environ['mongoconnectstring']
 dbClient = pymongo.MongoClient(mongoConnectString)
@@ -44,7 +47,7 @@ curDb = dbClient['hypixel']
 playersCol = curDb['pitplayers']
 itemsCol = curDb['pititems']
 discordsCol = curDb['pitdiscords']
-print('connected')
+print('connected to db')
 
 enchNames = {}
 with open("enchnames.txt") as enchNamesFile:
@@ -156,7 +159,7 @@ def itemReqApi(page):
 		argsList = argsString.split(',')
 
 		if not debugMode:
-			sendDiscord(argsString, webhookUrlSearches)
+			discordsender.sendDiscord(argsString, webhookUrlSearches)
 
 		argsList = list(filter(lambda x: x != '', argsList))
 
@@ -313,7 +316,7 @@ def itemImageRoute():
 
 	if not debugMode and request.url not in sentImages:
 		sentImages[request.full_path] = True
-		sendDiscord(request.full_path, webhookUrlImages)
+		discordsender.sendDiscord(request.full_path, webhookUrlImages)
 
 	# get data
 
@@ -499,17 +502,6 @@ def enchNamesApi():
 def favicon():
 	return app.send_static_file('favicon.ico')
 
-def sendDiscord(toSend, hookUrl):
-	def sendDiscordPart(partToSend):
-		url = hookUrl
-		data = {}
-		data["username"] = "jojo.boats"
-		data["content"] = partToSend
-		requests.post(url, json=data, headers={"Content-Type": "application/json"}, timeout = 10)
-	
-	for i in range(int(len(toSend) / 2000) + 1):
-		sendDiscordPart(toSend[i * 2000:i* 2000 + 2000])
-
 def replaceColors(repStr):
 	try:
 		repStr = str(repStr)
@@ -614,3 +606,5 @@ def prettyDate(theTime):
 		diffStr = diffStr.replace('[POTENTIALCHAR]', '')
 
 	return diffStr
+
+app.run()
