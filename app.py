@@ -4,7 +4,7 @@ dont know if i will bother to improve any of it as it just about works
 enjoy
 '''
 
-print('init app')
+print('init')
 
 import json
 import time
@@ -38,6 +38,8 @@ if 'debugmode' in os.environ:
 	debugMode = True
 
 import discordsender
+
+import pandasocket
 
 print('connecting to db')
 import pymongo
