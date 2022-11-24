@@ -1,3 +1,5 @@
+import requests
+
 def sendDiscord(toSend, hookUrl):
 	def sendDiscordPart(partToSend):
 		url = hookUrl
