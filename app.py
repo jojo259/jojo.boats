@@ -14,6 +14,7 @@ import os
 import io
 import re
 import threading
+import urllib
 import PIL
 from PIL import Image
 from PIL import ImageDraw

@@ -18,6 +18,7 @@ pymongo==4.2.0
 python-dotenv==0.20.0
 rel==0.4.7
 requests==2.28.1
+urllib3==1.26.12
 simple-websocket-server==0.4.2
 urllib3==1.26.12
 websocket-client==1.4.2
