@@ -23,9 +23,12 @@ def on_open(ws):
 def on_close(ws):
 	print("websocket closed")
 
+def on_error(ws, error):
+	print(error)
+
 if __name__ == 'pandasocket':
 	print('connecting to websocket')
 	#websocket.enableTrace(True)
-	ws = websocket.WebSocketApp("wss://pitpanda.rocks/api/newmystics", on_message = on_message, on_close = on_close, on_open = on_open)
+	ws = websocket.WebSocketApp("wss://pitpanda.rocks/api/newmystics", on_message = on_message, on_close = on_close, on_open = on_open, on_error = on_error)
 	wst = threading.Thread(target=ws.run_forever, kwargs={'reconnect': 5})
 	wst.start()
