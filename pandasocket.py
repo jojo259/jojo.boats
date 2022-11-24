@@ -1,5 +1,4 @@
 print('init pandasocket')
-print(__name__)
 
 import websocket
 import threading
@@ -21,7 +20,7 @@ def on_open(ws):
 	print('websocket connected')
 
 def on_close(ws):
-	print("### closed ###")
+	print("websocket closed")
 
 if __name__ == 'pandasocket':
 	print('connecting to websocket')
