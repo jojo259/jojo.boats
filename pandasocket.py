@@ -4,6 +4,7 @@ import websocket
 import threading
 from time import sleep
 import json
+import rel
 
 def on_message(ws, curMsg):
 	try:
@@ -26,5 +27,5 @@ if __name__ == 'pandasocket':
 	print('connecting to websocket')
 	#websocket.enableTrace(True)
 	ws = websocket.WebSocketApp("wss://pitpanda.rocks/api/newmystics", on_message = on_message, on_close = on_close, on_open = on_open)
-	wst = threading.Thread(target=ws.run_forever)
+	wst = threading.Thread(target=ws.run_forever, kwargs={'reconnect': 5})
 	wst.start()
