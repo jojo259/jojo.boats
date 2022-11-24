@@ -606,5 +606,3 @@ def prettyDate(theTime):
 		diffStr = diffStr.replace('[POTENTIALCHAR]', '')
 
 	return diffStr
-
-app.run()
