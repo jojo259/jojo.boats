@@ -318,7 +318,13 @@ def itemImageRoute():
 
 	"""
 		takes as query params:
-		text OR (name AND (lore/desc/description))
+		text
+		OR
+		(name AND (lore/desc/description))
+		OR
+		raw hypixel item nbt json
+		OR
+		item json with name and lore/desc/description fields (pitpanda, jojoboats)
 	"""
 
 	# log
@@ -332,6 +338,18 @@ def itemImageRoute():
 	argsName = request.args.get('name')
 	argsLore = request.args.get('lore') or request.args.get('desc') or request.args.get('description')
 	argsText = request.args.get('text')
+	argsItemJson = request.args.get('itemjson')
+
+	if argsItemJson != None:
+		itemJson = json.loads(argsItemJson)
+
+		argsName = itemJson.get('tag', {}).get('display', {}).get('Name')
+		argsLore = itemJson.get('tag', {}).get('display', {}).get('Lore')
+
+		if argsName == None or argsLore == None:
+			# pitpand/jojoboats/other processed item data
+			argsName = itemJson.get('name')
+			argsLore = ',,,'.join(itemJson.get('lore') or itemJson.get('desc') or itemJson.get('description'))
 
 	itemTextRaw = 'abc'
 
