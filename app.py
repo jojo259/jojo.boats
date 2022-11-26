@@ -128,7 +128,7 @@ def itemReq(page):
 			saveStr = ''
 			if 'lastsave' in itemTo:
 				itemLastSave = itemTo['lastsave']
-				saveStr = replaceColors(f'§8Seen in Pit {prettyDate(itemLastSave)}')
+				saveStr = replaceColors(f'§8Seen in Pit {prettyTimeStr(itemLastSave)}')
 				#saveStr = str(itemTo['lastsave'])
 			if 'lore' in itemTo:
 				returnStr += '<br>'
