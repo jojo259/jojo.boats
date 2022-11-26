@@ -40,7 +40,8 @@ if 'debugmode' in os.environ:
 
 import discordsender
 
-import pandasocket
+if not debugMode:
+	import pandasocket
 
 print('connecting to db')
 import pymongo
@@ -315,6 +316,11 @@ sentImages = {}
 @app.route("/api/itemimage", methods=['GET'])
 def itemImageRoute():
 
+	"""
+		takes as query params:
+		text OR (name AND (lore/desc/description))
+	"""
+
 	# log
 
 	if not debugMode and request.url not in sentImages:
@@ -323,9 +329,20 @@ def itemImageRoute():
 
 	# get data
 
-	textDelimiter = ',,,'
+	argsName = request.args.get('name')
+	argsLore = request.args.get('lore') or request.args.get('desc') or request.args.get('description')
+	argsText = request.args.get('text')
 
-	itemLines = request.args.get('text', f'abc').split(textDelimiter)
+	itemTextRaw = 'abc'
+
+	if argsText != None:
+		itemTextRaw = argsText
+
+	if argsName != None and argsLore != None:
+		itemTextRaw = argsName + ',,,' + argsLore
+
+	itemLines = itemTextRaw.split(',,,')
+
 	imageScale = request.args.get('scale') # minimum 4 for 1 pixel per minecraft font pixel, prob 8 recommended (multiples of 4 to match the minecraft font pixels)
 
 	if imageScale == None:
