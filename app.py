@@ -406,7 +406,9 @@ def itemImageRoute():
 					curColor = ImageColor.getcolor(minecraftColorCodes.get(curChar, '#CCC'), 'RGB')
 					continue
 
-				drawObj.text((atX + imageScale / 4, atLine * textSize + boxPadding + imageScale / 4), curChar, font = minecraftFontRegular, fill = tuple(map(lambda x: int(x / 4), curColor))) # shadow
+				pixelScaleConst = 0.296875 # idek why
+
+				drawObj.text((atX + imageScale * pixelScaleConst, atLine * textSize + boxPadding + imageScale * pixelScaleConst), curChar, font = minecraftFontRegular, fill = tuple(map(lambda x: int(x / 4), curColor))) # shadow
 				drawObj.text((atX, atLine * textSize + boxPadding), curChar, font = minecraftFontRegular, fill = curColor)
 				atX += drawObj.textlength(curChar, font = minecraftFontRegular)
 
