@@ -590,69 +590,36 @@ def beforeRequest():
 		urlparts_list[1] = 'jojo.boats'
 		return redirect(urllib.parse.urlunparse(urlparts_list), code=301)
 
-def prettyDate(theTime):
+def prettyTimeStr(theTime):
 	curTime = time.time()
 
-	diffStr = f'ERROR <{theTime}>'
+	timeDiff = abs(theTime - curTime)
 
-	timeDiff = theTime - curTime
+	timeWord = ''
 
-	diffNum = 0
-	if timeDiff > 0: # future
-		if timeDiff < 1:
-			diffNum = int(timeDiff)
-			diffStr = f'right now'
-		elif timeDiff < 60:
-			diffNum = int(timeDiff)
-			diffStr = f'in {diffNum} second[POTENTIALCHAR]'
-		elif timeDiff < 60 * 60: # minutes
-			diffNum = int(timeDiff / 60)
-			diffStr = f'in {diffNum} minute[POTENTIALCHAR]'
-		elif timeDiff < 60 * 60 * 24: # hours
-			diffNum = int(timeDiff / 60 / 60)
-			diffStr = f'in {diffNum} hour[POTENTIALCHAR]'
-		elif timeDiff < 60 * 60 * 24 * 7: # days
-			diffNum = int(timeDiff / 60 / 60 / 24)
-			diffStr = f'in {diffNum} day[POTENTIALCHAR]'
-		elif timeDiff < 60 * 60 * 24 * 30: # weeks
-			diffNum = int(timeDiff / 60 / 60 / 24 / 7)
-			diffStr = f'in {diffNum} week[POTENTIALCHAR]'
-		elif timeDiff < 60 * 60 * 24 * 365: # months
-			diffNum = int(timeDiff / 60 / 60 / 24 / 30)
-			diffStr = f'in {diffNum} month[POTENTIALCHAR]'
-		else: # years
-			diffNum = int(timeDiff / 60 / 60 / 24 / 365)
-			diffStr = f'in {diffNum} year[POTENTIALCHAR]'
-	else: # past
-		timeDiff = timeDiff * -1
-		if timeDiff < 1:
-			diffNum = int(timeDiff)
-			diffStr = f'right now'
-		elif timeDiff < 60:
-			diffNum = int(timeDiff)
-			diffStr = f'{diffNum} second[POTENTIALCHAR] ago'
-		elif timeDiff < 60 * 60: # minutes
-			diffNum = int(timeDiff / 60)
-			diffStr = f'{diffNum} minute[POTENTIALCHAR] ago'
-		elif timeDiff < 60 * 60 * 24: # hours
-			diffNum = int(timeDiff / 60 / 60)
-			diffStr = f'{diffNum} hour[POTENTIALCHAR] ago'
-		elif timeDiff < 60 * 60 * 24 * 7: # days
-			diffNum = int(timeDiff / 60 / 60 / 24)
-			diffStr = f'{diffNum} day[POTENTIALCHAR] ago'
-		elif timeDiff < 60 * 60 * 24 * 30: # weeks
-			diffNum = int(timeDiff / 60 / 60 / 24 / 7)
-			diffStr = f'{diffNum} week[POTENTIALCHAR] ago'
-		elif timeDiff < 60 * 60 * 24 * 365: # months
-			diffNum = int(timeDiff / 60 / 60 / 24 / 30)
-			diffStr = f'{diffNum} month[POTENTIALCHAR] ago'
-		else: # years
-			diffNum = int(timeDiff / 60 / 60 / 24 / 365)
-			diffStr = f'{diffNum} year[POTENTIALCHAR] ago'
+	if timeDiff < 1:
+		return 'right now'
+	elif timeDiff < 60:
+		timeWord = 'second'
+	elif timeDiff < 3600:
+		timeWord = 'minute'
+		timeDiff /= 60
+	elif timeDiff < 86400:
+		timeWord = 'hour'
+		timeDiff /= 3600
+	elif timeDiff < 2678400:
+		timeWord = 'day'
+		timeDiff /= 86400
+	elif timeDiff < 31536000:
+		timeWord = 'month'
+		timeDiff /= 2678400
 
-	if diffNum > 1:
-		diffStr = diffStr.replace('[POTENTIALCHAR]', 's')
+	timeDiff = math.floor(timeDiff)
+
+	if timeDiff > 1:
+		timeWord += 's'
+
+	if theTime > curTime:
+		return f'in {timeDiff} {timeWord}'
 	else:
-		diffStr = diffStr.replace('[POTENTIALCHAR]', '')
-
-	return diffStr
+		return f'{timeDiff} {timeWord} ago'
