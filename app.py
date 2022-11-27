@@ -581,16 +581,6 @@ def replaceColors(repStr):
 		print(e)
 		return ''
 
-@app.before_request # yoinked, maybe works
-def beforeRequest():
-
-	"""Redirect www requests to non-www."""
-	urlparts = urllib.parse.urlparse(request.url)
-	if urlparts.netloc == 'www.jojo.boats':
-		urlparts_list = list(urlparts)
-		urlparts_list[1] = 'jojo.boats'
-		return redirect(urllib.parse.urlunparse(urlparts_list), code=301)
-
 def prettyTimeStr(theTime):
 	curTime = time.time()
 
