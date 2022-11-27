@@ -614,6 +614,9 @@ def prettyTimeStr(theTime):
 	elif timeDiff < 31536000:
 		timeWord = 'month'
 		timeDiff /= 2678400
+	else:
+		timeWord = 'year'
+		timeDiff /= 31536000
 
 	timeDiff = math.floor(timeDiff)
 
