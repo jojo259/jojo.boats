@@ -332,7 +332,7 @@ def itemImageRoute():
 
 	if not debugMode and request.url not in sentImages:
 		sentImages[request.full_path] = True
-		discordsender.sendDiscord(request.full_path, webhookUrlImages)
+		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), webhookUrlImages)
 
 	# get data
 
