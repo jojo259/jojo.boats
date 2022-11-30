@@ -28,31 +28,13 @@ load_dotenv()
 from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect, send_file
 app = Flask(__name__)
 
-webhookUrlSearches = os.environ['webhookurlsearches']
-webhookUrlImages = os.environ['webhookurlimages']
-
-jojoKey = os.environ['jojokey']
-noLimitKey = os.environ['nolimitkey']
-playersApiKey = os.environ['playersapikey']
-
-debugMode = False
-if 'debugmode' in os.environ:
-	debugMode = True
-
+import config
 import discordsender
-
-if not debugMode:
+import database
+import indexer
+import indexertasker
+if not config.debugMode: # websocket prevents keyboard interrupts. annoying af
 	import pandasocket
-
-print('connecting to db')
-import pymongo
-mongoConnectString = os.environ['mongoconnectstring']
-dbClient = pymongo.MongoClient(mongoConnectString)
-curDb = dbClient['hypixel']
-playersCol = curDb['pitplayers']
-itemsCol = curDb['pititems']
-discordsCol = curDb['pitdiscords']
-print('connected to db')
 
 enchNames = {}
 with open("enchnames.txt") as enchNamesFile:
@@ -147,6 +129,13 @@ def itemReq(page):
 
 			return {'text': returnStr}
 
+		""" would probably take up all of the indexer's time
+		for curItem in itemsFound:
+			itemOwner = curItem.get('owner')
+			if itemOwner != None:
+				indexertasker.addToIndexerQueue(itemOwner)
+		"""
+
 		itemsFound = map(itemFormat, itemsFound)
 
 		return render_template('items.html', content = {'items': itemsFound, 'count': itemsFoundCount})
@@ -163,7 +152,7 @@ def itemReqApi(page):
 		argsString = page.lower()
 		argsList = argsString.split(',')
 
-		if not debugMode:
+		if not config.debugMode:
 			discordsender.sendDiscord(argsString, webhookUrlSearches)
 
 		argsList = list(filter(lambda x: x != '', argsList))
@@ -246,7 +235,7 @@ def itemReqApi(page):
 					dbQuery = {'$and': dbQueryAnds}
 
 					print('counting')
-					numFound = itemsCol.count_documents(dbQuery)
+					numFound = database.itemsCol.count_documents(dbQuery)
 					print('counted')
 
 					returnDict = {}
@@ -276,11 +265,11 @@ def itemReqApi(page):
 				dbQueryAnds.append({'enchpit':{'$elemMatch':{'Key': argKey, 'Level': {queryOperator: argNum}}}})
 
 		if dbQueryAnds == [] or dbQueryAnds == [{'frompanda': True}]:
-			foundItems = itemsCol.find({'$and': [{'frompanda': True}, {'tokens': 8}]}).limit(100) # default search for homepage
+			foundItems = database.itemsCol.find({'$and': [{'frompanda': True}, {'tokens': 8}]}).limit(100) # default search for homepage
 		else:
 			dbQuery = {'$and': dbQueryAnds}
 
-			foundItems = itemsCol.find(dbQuery).limit(returnItemsLimit + 1) # (bc idk if mongodb is actually aware whether it returned all the documents or the .limit actually kicked in so that's just detected below)
+			foundItems = database.itemsCol.find(dbQuery).limit(returnItemsLimit + 1) # (bc idk if mongodb is actually aware whether it returned all the documents or the .limit actually kicked in so that's just detected below)
 
 		foundItemsList = []
 
@@ -330,7 +319,7 @@ def itemImageRoute():
 
 	# log
 
-	if not debugMode and request.url not in sentImages:
+	if not config.debugMode and request.url not in sentImages:
 		sentImages[request.full_path] = True
 		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), webhookUrlImages)
 
@@ -523,7 +512,7 @@ def checkDiscordRoute(discordId):
 
 	discordId = int(discordId)
 
-	discordDoc = discordsCol.find_one({'_id': discordId})
+	discordDoc = database.discordsCol.find_one({'_id': discordId})
 
 	if discordDoc == None:
 		return {'success': True, 'uuid': None, 'message': 'no user found'}

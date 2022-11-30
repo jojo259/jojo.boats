@@ -6,13 +6,16 @@ from time import sleep
 import json
 import rel
 
+import indexertasker
+
 def on_message(ws, curMsg):
 	try:
 
 		itemJson = json.loads(curMsg)
 		ownerUuid = itemJson.get('item', {}).get('owner', 'null')
 		print(f'new mystic from {ownerUuid}')
-		# todo
+
+		indexertasker.addToIndexerQueue(ownerUuid)
 
 	except Exception as e:
 		print(f'pandasocket message ingest errored {e} on item {curMsg}')
