@@ -158,7 +158,7 @@ def itemReqApi(page):
 		argsList = argsString.split(',')
 
 		if not config.debugMode:
-			discordsender.sendDiscord(argsString, webhookUrlSearches)
+			discordsender.sendDiscord(argsString, config.webhookUrlSearches)
 
 		argsList = list(filter(lambda x: x != '', argsList))
 
@@ -254,15 +254,15 @@ def itemReqApi(page):
 					return returnDict
 
 			elif argKey == 'key':
-				if argVal == jojoKey:
+				if argVal == config.jojoKey:
 					if {'frompanda': True} in dbQueryAnds:
 						dbQueryAnds.remove({'frompanda': True})
-				if argVal == jojoKey + 'no':
+				if argVal == config.jojoKey + 'no':
 					if {'frompanda': True} in dbQueryAnds:
 						dbQueryAnds.remove({'frompanda': True})
 					dbQueryAnds.append({'frompanda': {'$exists': False}})
 
-				if argVal == noLimitKey or argVal == jojoKey:
+				if argVal == config.noLimitKey or argVal == config.jojoKey:
 					returnItemsLimit = 99999999999
 			else:
 				if argKey in enchNames:
@@ -326,7 +326,7 @@ def itemImageRoute():
 
 	if not config.debugMode and request.url not in sentImages:
 		sentImages[request.full_path] = True
-		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), webhookUrlImages)
+		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), config.webhookUrlImages)
 
 	# get data
 
@@ -481,7 +481,7 @@ def sendPlayersApi():
 
 	requestKey = request.headers.get('reqkey')
 
-	if requestKey != playersApiKey:
+	if requestKey != config.playersApiKey:
 		print('key wrong')
 		return 'key wrong'
 
@@ -502,7 +502,7 @@ def getPlayersApi():
 
 	requestKey = request.headers.get('reqkey')
 
-	if requestKey != playersApiKey:
+	if requestKey != config.playersApiKey:
 		print('key wrong')
 		return 'key wrong'
 
