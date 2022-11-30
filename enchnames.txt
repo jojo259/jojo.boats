@@ -125,6 +125,10 @@ devil explosive_chickens
 devilchicks explosive_chickens
 devilschicks explosive_chickens
 devilchicks explosive_chickens
+resres respawn_with_resistance
+respawnres respawn_with_resistance
+resresistance respawn_with_resistance
+respawnresistance respawn_with_resistance
 respawn:resistance respawn_with_resistance
 gtgf perma_speed
 gottagofast perma_speed
