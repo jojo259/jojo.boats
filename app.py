@@ -143,6 +143,11 @@ def itemReq(page):
 		print(e)
 		return 'error moment'
 
+@app.route("/api/addtoindexerqueue/<playerTag>", methods=['GET'])
+def addToIndexerQueueRoute(playerTag):
+	indexertasker.addToIndexerQueue(playerTag)
+	return {'success': True, 'message': 'added'}
+
 @app.route("/api/items/<path:page>", methods=['GET'])
 def itemReqApi(page):
 	try:

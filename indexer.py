@@ -23,9 +23,6 @@ def genIndexTypes():
 	curTime = time.time()
 
 	indexTypes = {}
-	#indexTypes['checkAll'] = {'persist.checkalltag': {'$exists': False}}
-	#indexTypes['boatsWorkaround'] = {'$and': [{'nodata': {'$exists': False}}, {'persist.checkedpit': False}]}
-	#indexTypes['noChecked'] = {'$and': [{'nodata': {'$exists': False}}, {'checktime': {'$exists': False}}]}
 	indexTypes['tooOld'] = {'checktime':{'$lt': curTime - 86400 * 365}}
 
 	indexTypes['onlineYear'] = {'$and':[{'lastsave':{'$gt': curTime - 86400 * 365}}, {'checktime':{'$lt': curTime - 86400 * 30}}]}

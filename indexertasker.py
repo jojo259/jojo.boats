@@ -3,7 +3,7 @@ from flask_apscheduler import APScheduler
 
 import indexer
 
-secondsPerIndexerTask = 5
+secondsPerIndexerTask = 0.5 # will error like crazy if each task takes too long but whatever doesn't cause any issues "maximum number of running instances reached"
 
 scheduler = APScheduler()
 
@@ -18,9 +18,9 @@ def indexerTask():
 	print('doing indexer task')
 
 	if len(indexerQueue) > 0:
-		print('indexing queued player')
 		curQueued = indexerQueue[0]
 		indexerQueue = indexerQueue[1:]
+		print(f'indexing queued player {curQueued}')
 		indexer.indexPlayer(curQueued)
 	else:
 		print('doing regular indexer loop')
