@@ -496,6 +496,17 @@ def sendPlayersApi():
 
 	return 'success'
 
+@app.route(f"/api/{config.jojoKey}/pauseindexer/<extraPauseHours>", methods=['GET'])
+def pauseIndexerRoute(extraPauseHours):
+	print(f'pause indexer route')
+
+	newPauseUntil = time.time() + int(extraPauseHours) * 3600
+
+	print(f'	pausing indexer until {newPauseUntil}')
+
+	indexertasker.pauseUntil = newPauseUntil
+	return {'success': True, 'newpauseuntil': newPauseUntil}
+
 @app.route("/api/getplayers", methods=['GET'])
 def getPlayersApi():
 	print('players requested')

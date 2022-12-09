@@ -1,9 +1,16 @@
+import time
+
 from flask import Flask
 from flask_apscheduler import APScheduler
 
 import indexer
+import config
+
+pauseUntil = 0
 
 secondsPerIndexerTask = 0.5 # will error like crazy if each task takes too long but whatever doesn't cause any issues "maximum number of running instances reached"
+if config.debugMode:
+	secondsPerIndexerTask = 5
 
 scheduler = APScheduler()
 
@@ -14,6 +21,9 @@ def addToIndexerQueue(toAdd):
 
 def indexerTask():
 	global indexerQueue
+
+	if time.time() < pauseUntil:
+		return
 
 	print('doing indexer task')
 
