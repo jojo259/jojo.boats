@@ -494,27 +494,26 @@ def pandaApi():
 
 	return pandaApiGot
 
-cachedUuidsStr = 'null'
-@app.route("/api/sendplayers", methods=['GET']) # sussy stuff
-def sendPlayersApi():
-	print('players sent')
+playersAdded = []
+@app.route(f"/api/{config.jojoKey}/addplayer/<playerTag>", methods=['GET'])
+def addPlayerRoute(playerTag):
+	global playersAdded
 
-	requestKey = request.headers.get('reqkey')
+	print(f'add player route')
 
-	if requestKey != config.playersApiKey:
-		print('key wrong')
-		return 'key wrong'
+	if playerTag in playersAdded:
+		print(f'	already added {playerTag}')
+		return {'success': True, 'msg': 'already added'}
 
-	uuidsStr = request.headers.get('uuids')
+	playersAdded.append(playerTag)
+	if len(playersAdded) > 4096:
+		playersAdded = playersAdded[2048:]
 
-	if uuidsStr == None:
-		print('no uuids string')
-		return 'no uuids string'
+	database.playersCol.update_one({'_id': playerTag}, {'$set': {'persist.checkedpit': False}}, upsert = True)
 
-	global cachedUuidsStr
-	cachedUuidsStr = uuidsStr
+	print(f'	upserted {playerTag}')
 
-	return 'success'
+	return {'success': True, 'msg': 'added'}
 
 @app.route(f"/api/{config.jojoKey}/pauseindexer/<extraPauseHours>", methods=['GET'])
 def pauseIndexerRoute(extraPauseHours):
@@ -526,18 +525,6 @@ def pauseIndexerRoute(extraPauseHours):
 
 	indexertasker.pauseUntil = newPauseUntil
 	return {'success': True, 'newpauseuntil': newPauseUntil}
-
-@app.route("/api/getplayers", methods=['GET'])
-def getPlayersApi():
-	print('players requested')
-
-	requestKey = request.headers.get('reqkey')
-
-	if requestKey != config.playersApiKey:
-		print('key wrong')
-		return 'key wrong'
-
-	return cachedUuidsStr
 
 @app.route("/api/checkdiscord/<discordId>", methods=['GET'])
 def checkDiscordRoute(discordId):
