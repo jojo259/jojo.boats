@@ -7,6 +7,8 @@ def sendDiscord(toSend, hookUrl):
 		data["username"] = "jojo.boats"
 		data["content"] = partToSend
 		requests.post(url, json=data, headers={"Content-Type": "application/json"}, timeout = 10)
+
+	toSend = toSend.replace('@', 'at')
 	
-	for i in range(int(len(toSend) / 2000) + 1):
-		sendDiscordPart(toSend[i * 2000:i* 2000 + 2000])
+	for i in range(int(len(toSend) / 1998) + 1):
+		sendDiscordPart('`' + toSend[i * 1998:i* 1998 + 1998] + '`')
