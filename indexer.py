@@ -14,14 +14,13 @@ import copy
 import nbt
 from nbt.nbt import NBTFile, TAG_Long, TAG_Int, TAG_String, TAG_List, TAG_Compound
 import pymongo
+import bson
 
 import config
 import database
 import discordsender
 
 print('connecting')
-
-import time
 
 def genIndexTypes():
 	curTime = time.time()
@@ -295,7 +294,7 @@ def indexPlayer(givenUuid):
 					itemColor = getVal(curItem, ['tag','display','color'])
 					itemLore = getVal(curItem, ['tag','display','Lore'])
 
-					if itemId == 262 and itemName == None and itemLore == None:
+					if (itemId == 49 or itemId == 262) and itemName == None and itemLore == None:
 						continue # skip item if plain arrow
 
 					itemTokens = 0
@@ -334,13 +333,15 @@ def indexPlayer(givenUuid):
 					if playerFromPanda:
 						addItemVal('frompanda', True)
 
-					itemsToInsert.append(toInsert)
+					#itemsToInsert.append(toInsert) # moved and duplicated bc this code is structured terribly...
 
 					# mystic logging (.js haha funny pit panda source code reference)
 
 					if itemNonce == None:
+						itemsToInsert.append(toInsert)
 						continue # no nonce, can't track
-					if itemNonce > 0 and itemNonce < 16:
+					if itemNonce >= 0 and itemNonce <= 16:
+						itemsToInsert.append(toInsert)
 						continue # not regular mystic, can't track
 
 					duplicateNonceDocs = list(database.mysticsCol.find({'item.nonce': itemNonce})) # could batch all these into one if slow (should be fine)
@@ -350,13 +351,18 @@ def indexPlayer(givenUuid):
 
 					# process item
 
-					newMysticDoc = {'item': copy.deepcopy(toInsert), 'owners': [{'uuid': playerUuid, 'first': curTime, 'last': curTime}]} # without copy it was getting the ObjectID from when the item was inserted into the items col...
+					newObjectId = bson.ObjectId()
+					newMysticDoc = {'_id': newObjectId, 'item': copy.deepcopy(toInsert), 'owners': [{'uuid': playerUuid, 'first': curTime, 'last': curTime}]} # without copy it was getting the ObjectID from when the item was inserted into the items col...
 
 					if duplicateNonceCount == 0:
 
 						# item has no duplicate nonce so it's a new item so insert
 
 						mysticsColOperations.append(pymongo.InsertOne(newMysticDoc))
+
+						toInsert.update({'mysticid': str(newObjectId)})
+						itemsToInsert.append(toInsert)
+
 						continue
 
 					else:
@@ -460,9 +466,13 @@ def indexPlayer(givenUuid):
 									print('		item has new owner')
 									alrItemData['owners'].append({'uuid': playerUuid, 'first': curTime, 'last': curTime})
 
-							# add mystic doc to bulk operations list
+							# add mystic doc to bulk operations lists
+
+							toInsert.update({'mysticid': str(alrItemData['_id'])})
+							itemsToInsert.append(toInsert)
 
 							mysticsColOperations.append(pymongo.ReplaceOne({'_id': alrItemData['_id']}, alrItemData))
+							
 							break
 
 						if not foundItemInDb:
@@ -470,6 +480,9 @@ def indexPlayer(givenUuid):
 							# didnt find item in db, new item
 
 							print(f'		didnt find item in db')
+
+							toInsert.update({'mysticid': str(newObjectId)})
+							itemsToInsert.append(toInsert)
 
 							mysticsColOperations.append(pymongo.InsertOne(newMysticDoc))
 
