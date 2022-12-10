@@ -217,6 +217,8 @@ def indexPlayer(givenUuid):
 
 				if lastSave != None:
 					lastSave = int(lastSave / 1000)
+				if lastSave == None:
+					lastSave = 0
 
 				addToUpsert(lastSave, 'lastsave')
 
