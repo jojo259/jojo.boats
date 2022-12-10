@@ -249,7 +249,7 @@ def itemReqApi(page):
 
 					returnDict = {}
 					returnDict['success'] = True
-					returnDict['msg']   = 'counted'
+					returnDict['message']   = 'counted'
 					returnDict['count'] = numFound
 					returnDict['items'] = []
 
@@ -296,7 +296,7 @@ def itemReqApi(page):
 
 		returnDict = {}
 		returnDict['success'] = True
-		returnDict['msg']   = returnMsg
+		returnDict['message']   = returnMsg
 		returnDict['count'] = numFound
 		returnDict['items'] = foundItemsList
 
@@ -307,7 +307,7 @@ def itemReqApi(page):
 		print(e)
 		returnDict = {}
 		returnDict['success'] = False
-		returnDict['msg'] = 'fatal error ggs'
+		returnDict['message'] = 'fatal error ggs'
 
 		return returnDict
 
@@ -407,15 +407,15 @@ def getMysticRoute(mysticId):
 		discordsender.sendDiscord(mysticId, config.webhookUrlMystic)
 
 	if len(mysticId) != 24:
-		return {'success': False, 'msg': 'invalid bson object id, not 24 characters'}
+		return {'success': False, 'message': 'invalid bson object id, not 24 characters'}
 
 	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)})
 
 	if foundMystic == None:
-		return {'success': False, 'msg': 'mystic id not found'}
+		return {'success': False, 'message': 'mystic id not found'}
 
 	if foundMystic.get('item', {}).get('frompanda') != True:
-		return {'success': False, 'msg': 'mystic not in pitpanda db'}
+		return {'success': False, 'message': 'mystic not in pitpanda db'}
 
 	foundMystic.update({'success': True})
 	prettifyMysticId(foundMystic)
@@ -431,15 +431,15 @@ def ownerHistoryRoute(mysticId):
 		discordsender.sendDiscord(mysticId, config.webhookUrlOwnerHistory)
 
 	if len(mysticId) != 24:
-		return {'success': False, 'msg': 'invalid bson object id, not 24 characters'}
+		return {'success': False, 'message': 'invalid bson object id, not 24 characters'}
 
 	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)})
 
 	if foundMystic == None:
-		return {'success': False, 'msg': 'mystic id not found'}
+		return {'success': False, 'message': 'mystic id not found'}
 
 	if foundMystic.get('item', {}).get('frompanda') != True:
-		return {'success': False, 'msg': 'mystic not in pitpanda db'}
+		return {'success': False, 'message': 'mystic not in pitpanda db'}
 	
 	foundMysticOwner = foundMystic.get('item', {}).get('owner', '')
 	foundMysticEnchants = foundMystic.get('item', {}).get('enchpit', [])
@@ -669,7 +669,7 @@ def addPlayerRoute(playerTag):
 
 	if playerTag in playersAdded:
 		print(f'	already added {playerTag}')
-		return {'success': True, 'msg': 'already added'}
+		return {'success': True, 'message': 'already added'}
 
 	playersAdded.append(playerTag)
 	if len(playersAdded) > 4096:
@@ -679,7 +679,7 @@ def addPlayerRoute(playerTag):
 
 	print(f'	upserted {playerTag}')
 
-	return {'success': True, 'msg': 'added'}
+	return {'success': True, 'message': 'added'}
 
 @app.route(f"/api/{config.jojoKey}/pauseindexer/<extraPauseHours>", methods=['GET'])
 def pauseIndexerRoute(extraPauseHours):
