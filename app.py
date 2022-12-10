@@ -369,7 +369,21 @@ def mysticSearchRoute(queryStr):
 		if curParam.startswith('uuid') or curParam.startswith('owner'):
 
 			print(f'	curParam owner {curParam}')
-			dbQueryAnds.append({'item.owner': curParam.replace('uuid', '').replace('owner', '')}) # (works..)
+			playerUuid = curParam.replace('uuid', '').replace('owner', '')
+			if len(playerUuid) != 32:
+				playerUuid = getPlayerUuid(playerUuid)
+			dbQueryAnds.append({'item.owner': playerUuid})
+			continue
+
+		# now also past owner param
+
+		if curParam.startswith('past'):
+
+			print(f'	curParam past {curParam}')
+			playerUuid = curParam.replace('past', '')
+			if len(playerUuid) != 32:
+				playerUuid = getPlayerUuid(playerUuid)
+			dbQueryAnds.append({'owners.uuid': playerUuid})
 			continue
 
 		# next check for the special params, which have number values
@@ -389,7 +403,7 @@ def mysticSearchRoute(queryStr):
 			paramKey = enchNames[paramKey]
 		dbQueryAnds.append({'item.enchpit':{'$elemMatch':{'Key': paramKey, 'Level': {paramOperator: paramVal}}}})
 
-	mysticsFound = list(database.mysticsCol.find({'$and': dbQueryAnds}, {'owners': 0, 'tier1': 0, 'tier2': 0, 'item.lore': 0, 'item.name': 0, 'item.lastsave': 0, 'item.frompanda': 0}))
+	mysticsFound = list(database.mysticsCol.find({'$and': dbQueryAnds}, {'owners': 0, 'tier1': 0, 'tier2': 0, 'item.frompanda': 0}))
 
 	for curMystic in mysticsFound:
 		prettifyMysticId(curMystic)
@@ -718,6 +732,22 @@ def enchNamesApi():
 @app.route('/favicon.ico')
 def favicon():
 	return app.send_static_file('favicon.ico')
+
+def getPlayerUuid(playerTag):
+	if len(playerTag) == 32:
+		return playerTag
+	if len(playerTag) <= 16:
+		playerDoc = database.playersCol.find_one({'username': playerTag})
+		if playerDoc != None:
+			return playerDoc['_id']
+
+	apiUrl = f'https://api.mojang.com/users/profiles/minecraft/{playerTag}'
+	try:
+		apiGot = requests.get(apiUrl, timeout = 5).json()
+	except Exception as e:
+		print(f'error getPlayerUuid {e}')
+		return 'error'
+	return apiGot.get('id')
 
 def prettifyMysticId(curItem):
 	curItem['mysticid'] = str(curItem.get('_id'))
