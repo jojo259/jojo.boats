@@ -26,6 +26,7 @@ def indexerTask():
 	print('doing indexer task')
 
 	if len(indexerQueue) > 0:
+		indexerQueue = list(dict.fromkeys(indexerQueue)) # remove duplicates
 		curQueued = indexerQueue[0]
 		indexerQueue = indexerQueue[1:]
 		print(f'indexing queued player {curQueued}')
