@@ -10,7 +10,7 @@ pauseUntil = 0
 
 secondsPerIndexerTask = 0.5 # will error like crazy if each task takes too long but whatever doesn't cause any issues "maximum number of running instances reached"
 if config.debugMode:
-	secondsPerIndexerTask = 10
+	secondsPerIndexerTask = 99999
 
 scheduler = APScheduler()
 

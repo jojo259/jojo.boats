@@ -11,11 +11,14 @@ if 'debug' in os.environ:
 else:
 	print('running in PRODUCTION mode')
 
-webhookUrlSearches = os.environ['webhookurlsearches']
-webhookUrlImages = os.environ['webhookurlimages']
+mongoConnectString = os.environ['mongoconnectstring']
 
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
-playersApiKey = os.environ['playersapikey']
-mongoConnectString = os.environ['mongoconnectstring']
 hypixelApiKey = os.environ['hypixelapikey']
+
+webhookUrlMysticSearch = os.environ['webhookurlmysticsearch']
+webhookUrlMystic = os.environ['webhookurlmystic']
+webhookUrlOwnerHistory = os.environ['webhookurlownerhistory']
+webhookUrlItemSearch = os.environ['webhookurlitemsearch']
+webhookUrlItemImage = os.environ['webhookurlitemimage']

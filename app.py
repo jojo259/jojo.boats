@@ -160,7 +160,7 @@ def itemReqApi(page):
 		argsList = argsString.split(',')
 
 		if not config.debugMode:
-			discordsender.sendDiscord(argsString, config.webhookUrlSearches)
+			discordsender.sendDiscord(argsString, config.webhookUrlItemSearch)
 
 		argsList = list(filter(lambda x: x != '', argsList))
 
@@ -309,8 +309,99 @@ def itemReqApi(page):
 
 		return returnDict
 
+@app.route("/api/mysticsearch/<queryStr>", methods=['GET'])
+def mysticSearchRoute(queryStr):
+
+	print(f'mysticSearchRoute')
+
+	if not config.debugMode:
+		discordsender.sendDiscord(queryStr, config.webhookUrlMysticSearch)
+	
+	requestParams = queryStr.split(',')
+
+	print(f'	request params: {requestParams}')
+
+	def getEnchantKeyValueOperator(fromStr):
+		strKey = fromStr
+		strVal = ''
+		strOperator = '$eq'
+
+		if strKey[-1] in ('+', '-'):
+			if strKey[-1] == '+':
+				strOperator = '$gte'
+			elif strKey[-1] == '-':
+				strOperator = '$lte'
+			strKey = strKey[:-1]
+
+		if strKey[-1].isnumeric():
+			while strKey[-1].isnumeric():
+				strVal = str(strKey[-1]) + str(strVal)
+				strKey = strKey[:-1]
+		else:
+			strVal = 0
+			strOperator = '$gte'
+
+		strVal = int(strVal)
+
+		return strKey, strVal, strOperator
+
+	dbQueryAnds = [{'item.frompanda': True}]
+
+	for curParam in requestParams:
+
+		# check for the MOST special param, gemmed, which has a boolean value
+
+		if curParam in ('gemmed', '!gemmed'):
+
+			print(f'	curParam gemmed {curParam}')
+			
+			if curParam == 'gemmed':
+				dbQueryAnds.append({'item.gemmed': True})
+			elif curParam == '!gemmed':
+				dbQueryAnds.append({'item.gemmed': {'$exists': False}})
+
+			continue
+
+		# check for the SECOND most special param, owner, which has a string value
+
+		if curParam.startswith('uuid') or curParam.startswith('owner'):
+
+			print(f'	curParam owner {curParam}')
+			dbQueryAnds.append({'item.owner': curParam.replace('uuid', '').replace('owner', '')}) # (works..)
+			continue
+
+		# next check for the special params, which have number values
+
+		paramKey, paramVal, paramOperator = getEnchantKeyValueOperator(curParam)
+
+		if paramKey.startswith('maxlives'):
+
+			print(f'	curParam maxlives {curParam}')
+			dbQueryAnds.append({'item.maxlives': {paramOperator: paramVal}})
+			continue
+
+		# now we have to assume it is an enchant param, which also uses number values but can be any key (hopefully it is an enchant)
+
+		print(f'	curParam enchant {curParam}')
+		if paramKey in enchNames.keys():
+			paramKey = enchNames[paramKey]
+		dbQueryAnds.append({'item.enchpit':{'$elemMatch':{'Key': paramKey, 'Level': {paramOperator: paramVal}}}})
+
+	mysticsFound = list(database.mysticsCol.find({'$and': dbQueryAnds}, {'owners': 0, 'tier1': 0, 'tier2': 0, 'item.lore': 0, 'item.name': 0, 'item.lastsave': 0, 'item.frompanda': 0}))
+
+	for curMystic in mysticsFound:
+		curMystic['mysticid'] = str(curMystic.get('_id'))
+		curMystic.pop('_id')
+
+	return mysticsFound
+
 @app.route("/api/mystic/<mysticId>", methods=['GET'])
 def getMysticRoute(mysticId):
+
+	print('getMysticRoute')
+
+	if not config.debugMode:
+		discordsender.sendDiscord(mysticId, config.webhookUrlMystic)
 
 	if len(mysticId) != 24:
 		return {'success': False, 'msg': 'invalid bson object id, not 24 characters'}
@@ -346,7 +437,7 @@ def itemImageRoute():
 
 	if not config.debugMode and request.url not in sentImages:
 		sentImages[request.full_path] = True
-		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), config.webhookUrlImages)
+		discordsender.sendDiscord(urllib.parse.unquote(request.full_path), config.webhookUrlItemImage)
 
 	# get data
 
