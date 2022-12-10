@@ -26,13 +26,10 @@ def genIndexTypes():
 	curTime = time.time()
 
 	indexTypes = {}
-	indexTypes['tooOld'] = {'checktime':{'$lt': curTime - 86400 * 365}}
+	#indexTypes['tooOld'] = {'checktime':{'$lt': curTime - 86400 * 365}}
 
-	indexTypes['onlineYear'] = {'$and':[{'lastsave':{'$gt': curTime - 86400 * 365}}, {'checktime':{'$lt': curTime - 86400 * 30}}]}
-	indexTypes['onlineMonth'] = {'$and':[{'lastsave':{'$gt': curTime - 86400 * 30}}, {'checktime':{'$lt': curTime - 86400 * 7}}]}
-	indexTypes['onlineWeek'] = {'$and':[{'lastsave':{'$gt': curTime - 86400 * 7}}, {'checktime':{'$lt': curTime - 86400 * 1}}]}
-	#indexTypes['onlineDay'] = {'$and':[{'lastsave':{'$gt': curTime - 3600 * 24}}, {'checktime':{'$lt': curTime - 3600 * 1}}]}
-	#indexTypes['onlineHour'] = {'$and':[{'lastsave':{'$gt': curTime - 60 * 60}}, {'checktime':{'$lt': curTime - 60 * 1}}]}
+	indexTypes['missingCheckAt'] = {'$and': [{'checkat': {'$exists': False}}, {'hasmystics': True}]}
+	indexTypes['checkAt'] = {'checkat': {'$lt': curTime}}
 
 	indexTypes['checkNew'] = {'$or': [{'persist.checkedpit': False}, {'persist.checkedpit': {'$exists': False}}]}
 
@@ -249,8 +246,7 @@ def indexPlayer(givenUuid):
 						playerFromPanda = True
 
 				#print(f'insertedItems {int((time.time() - loopTimer) * 1000)}ms')
-				
-				#print(f'	finding uuids')
+
 				uuidsFound = findUuids(apiGot)
 				print(f'	foundUuids {int((time.time() - loopTimer) * 1000)}ms')
 
@@ -265,7 +261,7 @@ def indexPlayer(givenUuid):
 
 					addFlagToUuid(playerUuid, 'checkedpit', True)
 					addFlagToUuid(playerUuid, 'haspit', False)
-					# database.playersCol.delete_one({'_id': playerUuid}) no more since merge
+					addToUpsert(curTime + 86400 * 365, 'checkat')
 					print('	no pit data')
 					return
 				addFlagToUuid(playerUuid, 'haspit', True) # ??
@@ -493,6 +489,11 @@ def indexPlayer(givenUuid):
 					if 'persist' in playerDocAlready:
 						toUpsert['persist'] = playerDocAlready['persist']
 						toUpsert['persist']['checkedpit'] = True
+
+				checkPlayerDiffConstant = 24
+				playerCheckAt = curTime + max(600, (curTime - lastSave) / checkPlayerDiffConstant)
+
+				addToUpsert(playerCheckAt, 'checkat')
 
 				database.playersCol.replace_one({'_id': playerUuid}, toUpsert, upsert = True)
 				addFlagToUuid(playerUuid, 'checkedpit', True) # REORGANIZE ? idk
