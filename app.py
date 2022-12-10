@@ -8,8 +8,10 @@ print('init')
 
 import json
 import time
+import datetime
 import random
 import requests
+from dateutil import parser
 import os
 import io
 import re
@@ -390,8 +392,9 @@ def mysticSearchRoute(queryStr):
 	mysticsFound = list(database.mysticsCol.find({'$and': dbQueryAnds}, {'owners': 0, 'tier1': 0, 'tier2': 0, 'item.lore': 0, 'item.name': 0, 'item.lastsave': 0, 'item.frompanda': 0}))
 
 	for curMystic in mysticsFound:
-		curMystic['mysticid'] = str(curMystic.get('_id'))
-		curMystic.pop('_id')
+		prettifyMysticId(curMystic)
+
+	mysticsFound.update({'success': True})
 
 	return mysticsFound
 
@@ -414,9 +417,81 @@ def getMysticRoute(mysticId):
 	if foundMystic.get('item', {}).get('frompanda') != True:
 		return {'success': False, 'msg': 'mystic not in pitpanda db'}
 
-	foundMystic.update({'_id': str(foundMystic.get('_id'))})
+	foundMystic.update({'success': True})
+	prettifyMysticId(foundMystic)
 
 	return foundMystic
+
+@app.route("/api/ownerhistory/<mysticId>", methods=['GET'])
+def ownerHistoryRoute(mysticId):
+
+	print('ownerHistoryRoute')
+
+	if not config.debugMode:
+		discordsender.sendDiscord(mysticId, config.webhookUrlOwnerHistory)
+
+	if len(mysticId) != 24:
+		return {'success': False, 'msg': 'invalid bson object id, not 24 characters'}
+
+	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)})
+
+	if foundMystic == None:
+		return {'success': False, 'msg': 'mystic id not found'}
+
+	if foundMystic.get('item', {}).get('frompanda') != True:
+		return {'success': False, 'msg': 'mystic not in pitpanda db'}
+	
+	foundMysticOwner = foundMystic.get('item', {}).get('owner', '')
+	foundMysticEnchants = foundMystic.get('item', {}).get('enchpit', [])
+
+	pitPandaQueryStr = f'uuid{foundMysticOwner}'
+
+	if len(foundMysticEnchants) > 0:
+		for curEnch in foundMysticEnchants:
+			pitPandaQueryStr += ',' + curEnch.get('Key') + str(curEnch.get('Level'))
+
+	pitPandaMysticSearchApiUrl = f'https://pitpanda.rocks/api/itemsearch/{pitPandaQueryStr}?key={config.pitPandaApiKey}'
+	try:
+		pitPandaMysticSearchApiGot = requests.get(pitPandaMysticSearchApiUrl, timeout = 30).json()
+	except Exception as e:
+		print(f'pitPandaMysticSearchApiGot failed {e}')
+	pitPandaMysticSearchApiItems = pitPandaMysticSearchApiGot.get('items', [])
+
+	pitPandaOwnerHistory = []
+
+	if len(pitPandaMysticSearchApiItems) == 1:
+
+		pitPandaItemId = pitPandaMysticSearchApiItems[0].get('id')
+
+		pitPandaItemApiUrl = f"https://pitpanda.rocks/api/item/{pitPandaItemId}?key={config.pitPandaApiKey}"
+		try:
+			pitPandaItemApiGot = requests.get(pitPandaItemApiUrl, timeout = 30).json()
+		except Exception as e:
+			pitPandaOwnerHistory = []
+			print(f'pitPandaItemApiGot failed {e}')
+
+		pitPandaOwnerHistory = pitPandaItemApiGot.get('item', {}).get('owners', [])
+
+	newOwnerHistory = foundMystic.get('owners', [])
+
+	for curPandaOwnerData in pitPandaOwnerHistory:
+		curPandaTime = parseTimestamp(curPandaOwnerData.get('time'))
+		newOwnerHistory.append({'uuid': curPandaOwnerData.get('uuid'), 'first': curPandaTime, 'last': curPandaTime})
+
+	newOwnerHistory.sort(key = lambda x: x['first'])
+
+	for atOwnerData in range(len(newOwnerHistory) - 1, 0, -1):
+		if newOwnerHistory[atOwnerData - 1]['uuid'] == newOwnerHistory[atOwnerData]['uuid']:
+			newOwnerHistory[atOwnerData - 1]['last'] = newOwnerHistory[atOwnerData]['last']
+			newOwnerHistory.pop(atOwnerData)
+
+	if False: # for debugging
+		for curData in newOwnerHistory:
+			timestampStr = '%Y/%m/%d - %H:%M:%S'
+			curData['first'] = datetime.datetime.fromtimestamp(curData['first']).strftime(timestampStr)
+			curData['last'] = datetime.datetime.fromtimestamp(curData['last']).strftime(timestampStr)
+
+	return {'success': True, 'ownerhistory': newOwnerHistory}
 
 sentImages = {}
 @app.route("/api/itemimage", methods=['GET'])
@@ -645,6 +720,13 @@ def enchNamesApi():
 @app.route('/favicon.ico')
 def favicon():
 	return app.send_static_file('favicon.ico')
+
+def prettifyMysticId(curItem):
+	curItem['mysticid'] = str(curItem.get('_id'))
+	curItem.pop('_id')
+
+def parseTimestamp(curTimestamp):
+	return int(parser.parse(curTimestamp).timestamp())
 
 def replaceColors(repStr):
 	try:

@@ -16,6 +16,7 @@ mongoConnectString = os.environ['mongoconnectstring']
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
 hypixelApiKey = os.environ['hypixelapikey']
+pitPandaApiKey = os.environ['pitpandaapikey']
 
 webhookUrlMysticSearch = os.environ['webhookurlmysticsearch']
 webhookUrlMystic = os.environ['webhookurlmystic']
