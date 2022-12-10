@@ -394,9 +394,7 @@ def mysticSearchRoute(queryStr):
 	for curMystic in mysticsFound:
 		prettifyMysticId(curMystic)
 
-	mysticsFound.update({'success': True})
-
-	return mysticsFound
+	return {'success': True, 'mystics': mysticsFound}
 
 @app.route("/api/mystic/<mysticId>", methods=['GET'])
 def getMysticRoute(mysticId):
@@ -440,7 +438,7 @@ def ownerHistoryRoute(mysticId):
 
 	if foundMystic.get('item', {}).get('frompanda') != True:
 		return {'success': False, 'message': 'mystic not in pitpanda db'}
-	
+
 	foundMysticOwner = foundMystic.get('item', {}).get('owner', '')
 	foundMysticEnchants = foundMystic.get('item', {}).get('enchpit', [])
 
