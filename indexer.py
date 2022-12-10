@@ -440,7 +440,6 @@ def indexPlayer(givenUuid):
 								pass
 							else:
 								# unknown pattern so ignore
-								discordsender.sendDiscord(itemDiffStr, config.webhookUrlMysticUnknownPatterns)
 								continue
 
 							# this is (almost certainly) the same item

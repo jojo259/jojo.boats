@@ -13,7 +13,6 @@ else:
 
 webhookUrlSearches = os.environ['webhookurlsearches']
 webhookUrlImages = os.environ['webhookurlimages']
-webhookUrlMysticUnknownPatterns = os.environ['webhookmysticunknownpatterns']
 
 jojoKey = os.environ['jojokey']
 noLimitKey = os.environ['nolimitkey']
