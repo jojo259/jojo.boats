@@ -381,7 +381,7 @@ def indexPlayer(givenUuid):
 							for curItemEnch in itemPitEnchants: # can also add check to see if an enchant was lost (which would mean they are different items)
 
 								enchSeen = False
-								curEnchLevel = curItemEnch.get('Level')
+								curEnchLevel = curItemEnch.get('Level', -99)
 
 								for alrItemEnch in alrItem.get('enchpit', []):
 
@@ -390,7 +390,7 @@ def indexPlayer(givenUuid):
 										# found same ench
 
 										enchSeen = True
-										alrEnchLevel = alrItemEnch.get('Level')
+										alrEnchLevel = alrItemEnch.get('Level', 99)
 										levelDiff = curEnchLevel - alrEnchLevel
 										tokensDiff += levelDiff
 										break

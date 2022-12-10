@@ -407,7 +407,7 @@ def getMysticRoute(mysticId):
 	if len(mysticId) != 24:
 		return {'success': False, 'message': 'invalid bson object id, not 24 characters'}
 
-	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)})
+	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)}, {'owners': 0})
 
 	if foundMystic == None:
 		return {'success': False, 'message': 'mystic id not found'}
