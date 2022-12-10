@@ -334,11 +334,7 @@ def indexPlayer(givenUuid):
 					if playerFromPanda:
 						addItemVal('frompanda', True)
 
-					#print(curItem)
-
 					itemsToInsert.append(toInsert)
-					#print(f'inserted {itemName if itemName != None else itemId}')
-					#print('done item')
 
 					# mystic logging (.js haha funny pit panda source code reference)
 

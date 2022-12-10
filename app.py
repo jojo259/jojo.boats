@@ -25,6 +25,8 @@ from PIL import ImageColor
 from dotenv import load_dotenv
 load_dotenv()
 
+import bson
+
 from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect, send_file
 app = Flask(__name__)
 
@@ -306,6 +308,24 @@ def itemReqApi(page):
 		returnDict['msg'] = 'fatal error ggs'
 
 		return returnDict
+
+@app.route("/api/mystic/<mysticId>", methods=['GET'])
+def getMysticRoute(mysticId):
+
+	if len(mysticId) != 24:
+		return {'success': False, 'msg': 'invalid bson object id, not 24 characters'}
+
+	foundMystic = database.mysticsCol.find_one({'_id': bson.ObjectId(mysticId)})
+
+	if foundMystic == None:
+		return {'success': False, 'msg': 'mystic id not found'}
+
+	if foundMystic.get('item', {}).get('frompanda') != True:
+		return {'success': False, 'msg': 'mystic not in pitpanda db'}
+
+	foundMystic.update({'_id': str(foundMystic.get('_id'))})
+
+	return foundMystic
 
 sentImages = {}
 @app.route("/api/itemimage", methods=['GET'])
