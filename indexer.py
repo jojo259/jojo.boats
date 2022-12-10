@@ -6,11 +6,15 @@
 
 import requests
 import time
-import nbt
 import io
 import math
 import random
+import copy
+
+import nbt
 from nbt.nbt import NBTFile, TAG_Long, TAG_Int, TAG_String, TAG_List, TAG_Compound
+import pymongo
+import bson
 
 import config
 import database
@@ -267,6 +271,8 @@ def indexPlayer(givenUuid):
 					return
 				addFlagToUuid(playerUuid, 'haspit', True) # ??
 
+				mysticUpsertOperations = []
+
 				itemsToInsert = []
 				playerItems = getItems(apiGot)
 				for curItem in playerItems:
@@ -302,7 +308,6 @@ def indexPlayer(givenUuid):
 					if itemTokens == 0:
 						itemTokens = None
 
-
 					toInsert = {}
 
 					def addItemVal(addKey, addVal):
@@ -335,6 +340,31 @@ def indexPlayer(givenUuid):
 					#print(f'inserted {itemName if itemName != None else itemId}')
 					#print('done item')
 
+					# mystic logging (.js haha funny pit panda source code reference)
+
+					mysticDatabaseId = bson.ObjectId() # will be replaced with already-existing ID if item is found in database
+
+					if itemNonce == None:
+						continue # no nonce, can't track
+					if itemNonce > 0 and itemNonce < 16:
+						continue # not regular mystic, can't track
+
+					duplicateNonceDocs = list(database.mysticsCol.find({'item.nonce': itemNonce})) # could batch all these into one if slow (should be fine)
+
+					print(f'		item has {len(duplicateNonceDocs)} duplicate nonces')
+
+					if len(duplicateNonceDocs) > 0:
+
+						# item has duplicate nonce so check if item already in db
+
+						return # i will do this later (currently this code will literally just insert the item on first sighting and then ignore it forever)
+
+					# construct actual doc and add to upsert list
+
+					mysticDoc = {'_id': mysticDatabaseId, 'item': copy.deepcopy(toInsert)} # without copy it was getting the ObjectID from when the item was inserted into the items col...
+
+					mysticUpsertOperations.append(pymongo.ReplaceOne({'_id': mysticDatabaseId}, mysticDoc, upsert = True))
+
 				print(f'	readItems {int((time.time() - loopTimer) * 1000)}ms')
 
 				playerDocAlready = database.playersCol.find_one({'_id': playerUuid})
@@ -347,13 +377,16 @@ def indexPlayer(givenUuid):
 				addFlagToUuid(playerUuid, 'checkedpit', True) # REORGANIZE ? idk
 
 				if len(itemsToInsert) > 0:
-					#print('inserting')
 					database.itemsCol.insert_many(itemsToInsert)
-					#print('done')
+
+				if len(mysticUpsertOperations) > 0:
+					print(f'		doing mystic upserts for {len(mysticUpsertOperations)} mystics')
+					database.mysticsCol.bulk_write(mysticUpsertOperations)
+				else:
+					print('		no mystics to upsert')
 
 				print(f'	insertedItems {int((time.time() - loopTimer) * 1000)}ms')
 
-				#print(f'addedFlag {int((time.time() - loopTimer) * 1000)}ms')
 			elif apiGot['success'] == False:
 				print('	success false')
 				if apiGot['cause'] == 'Malformed UUID':
