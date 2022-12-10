@@ -14,10 +14,10 @@ import copy
 import nbt
 from nbt.nbt import NBTFile, TAG_Long, TAG_Int, TAG_String, TAG_List, TAG_Compound
 import pymongo
-import bson
 
 import config
 import database
+import discordsender
 
 print('connecting')
 
@@ -271,9 +271,9 @@ def indexPlayer(givenUuid):
 					return
 				addFlagToUuid(playerUuid, 'haspit', True) # ??
 
-				mysticUpsertOperations = []
-
+				mysticsColOperations = []
 				itemsToInsert = []
+
 				playerItems = getItems(apiGot)
 				for curItem in playerItems:
 					#print('item')
@@ -342,28 +342,141 @@ def indexPlayer(givenUuid):
 
 					# mystic logging (.js haha funny pit panda source code reference)
 
-					mysticDatabaseId = bson.ObjectId() # will be replaced with already-existing ID if item is found in database
-
 					if itemNonce == None:
 						continue # no nonce, can't track
 					if itemNonce > 0 and itemNonce < 16:
 						continue # not regular mystic, can't track
 
 					duplicateNonceDocs = list(database.mysticsCol.find({'item.nonce': itemNonce})) # could batch all these into one if slow (should be fine)
+					duplicateNonceCount = len(duplicateNonceDocs)
 
 					print(f'		item has {len(duplicateNonceDocs)} duplicate nonces')
 
-					if len(duplicateNonceDocs) > 0:
+					# process item
 
-						# item has duplicate nonce so check if item already in db
+					newMysticDoc = {'item': copy.deepcopy(toInsert), 'owners': [{'uuid': playerUuid, 'first': curTime, 'last': curTime}]} # without copy it was getting the ObjectID from when the item was inserted into the items col...
 
-						return # i will do this later (currently this code will literally just insert the item on first sighting and then ignore it forever)
+					if duplicateNonceCount == 0:
 
-					# construct actual doc and add to upsert list
+						# item has no duplicate nonce so it's a new item so insert
 
-					mysticDoc = {'_id': mysticDatabaseId, 'item': copy.deepcopy(toInsert)} # without copy it was getting the ObjectID from when the item was inserted into the items col...
+						mysticsColOperations.append(pymongo.InsertOne(newMysticDoc))
+						continue
 
-					mysticUpsertOperations.append(pymongo.ReplaceOne({'_id': mysticDatabaseId}, mysticDoc, upsert = True))
+					else:
+
+						# item has duplicate nonce so check if item already in database or if it's new
+
+						foundItemInDb = False
+
+						for alrItemData in duplicateNonceDocs:
+
+							alrItem = alrItemData.get('item', {})
+
+							if alrItem.get('nonce', 0) != itemNonce:
+								continue # sanity check...
+
+							# check enchants to find the number of new tokens and do some simple checks
+
+							tokensDiff = 0
+
+							for curItemEnch in itemPitEnchants: # can also add check to see if an enchant was lost (which would mean they are different items)
+
+								enchSeen = False
+								curEnchLevel = curItemEnch.get('Level')
+
+								for alrItemEnch in alrItem.get('enchpit', []):
+
+									if alrItemEnch.get('Key') == curItemEnch.get('Key'):
+
+										# found same ench
+
+										enchSeen = True
+										alrEnchLevel = alrItemEnch.get('Level')
+										levelDiff = curEnchLevel - alrEnchLevel
+										tokensDiff += levelDiff
+										break
+
+								if not enchSeen:
+									tokensDiff += curEnchLevel
+
+							# check tier difference
+
+							tierDiff = itemTier - alrItem.get('tier', 99) # 99 to trigger if statement "tierDiff < 0"
+
+							if tierDiff < 0:
+								# tier went down which is impossible (besides jewels but whatever) so different item
+								continue
+
+							# check for known patterns and modify mystic doc appropriately
+
+							itemDiffStr = f'itemTier {itemTier} tierDiff {tierDiff} tokensDiff {tokensDiff} itemNonce {itemNonce} itemOwner {playerUuid}'
+
+							# little messy...
+							# can also add check for tokens matching tier (t1: 1-2, t2: 2-4, t3: 3-8)
+							if tierDiff == 0 and tokensDiff == 0:
+								# same item no changes
+								pass
+							elif tierDiff == 1 and itemTier == 1 and tokensDiff <= 2 and tokensDiff >= 1:
+								# tier 0 --> tier 1
+								pass
+							elif tierDiff == 1 and itemTier == 2 and tokensDiff <= 2 and tokensDiff >= 1:
+								# tier 1 --> tier 2
+								alrItemData['tier1'] = alrItem.get('enchpit', [])
+							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1:
+								# tier 2 --> tier 3 and potentially gemmed
+								alrItemData['tier2'] = alrItem.get('enchpit', [])
+							elif tierDiff == 2 and itemTier == 2 and tokensDiff <= 4 and tokensDiff >= 2:
+								# tier 0 --> tier 2
+								pass
+							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2:
+								# tier 1 --> tier 3 and potentially gemmed
+								alrItemData['tier1'] = alrItem.get('enchpit', [])
+							elif tierDiff == 3 and itemTier == 3 and tokensDiff <= 8 and tokensDiff >= 3:
+								# tier 0 --> tier 3
+								pass
+							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1:
+								# gemmed (can only gem at t3)
+								pass
+							else:
+								# unknown pattern so ignore
+								discordsender.sendDiscord(itemDiffStr, config.webhookUrlMysticUnknownPatterns)
+								continue
+
+							# this is (almost certainly) the same item
+
+							alrItemData['item'] = copy.deepcopy(toInsert)
+
+							foundItemInDb = True
+
+							print(f'		found item in db {itemDiffStr}')
+
+							# do owner history
+
+							if itemTier > 0: # don't do owner history for tier 0s because it will often be inaccurate due to duplicate nonce auction pants and duped items and who cares about fresh
+								if alrItemData['owners'][-1]['uuid'] == playerUuid:
+
+									# item owner is the same so just update the last seen time
+									alrItemData['owners'][-1]['last'] = curTime
+
+								else:
+
+									# item owner is not the same so append new entry to owners list
+									print('		item has new owner')
+									alrItemData['owners'].append({'uuid': playerUuid, 'first': curTime, 'last': curTime})
+
+							# add mystic doc to bulk operations list
+
+							mysticsColOperations.append(pymongo.ReplaceOne({'_id': alrItemData['_id']}, alrItemData))
+							break
+
+						if not foundItemInDb:
+
+							# didnt find item in db, new item
+
+							print(f'		didnt find item in db')
+
+							mysticsColOperations.append(pymongo.InsertOne(newMysticDoc))
 
 				print(f'	readItems {int((time.time() - loopTimer) * 1000)}ms')
 
@@ -379,9 +492,9 @@ def indexPlayer(givenUuid):
 				if len(itemsToInsert) > 0:
 					database.itemsCol.insert_many(itemsToInsert)
 
-				if len(mysticUpsertOperations) > 0:
-					print(f'		doing mystic upserts for {len(mysticUpsertOperations)} mystics')
-					database.mysticsCol.bulk_write(mysticUpsertOperations)
+				if len(mysticsColOperations) > 0:
+					print(f'		doing mystic upserts for {len(mysticsColOperations)} mystics')
+					database.mysticsCol.bulk_write(mysticsColOperations)
 				else:
 					print('		no mystics to upsert')
 
