@@ -161,7 +161,7 @@ def itemReqApi(page):
 		argsString = page.lower()
 		argsList = argsString.split(',')
 
-		if not config.debugMode:
+		if not config.debugMode and len(argsString) > 0:
 			discordsender.sendDiscord(argsString, config.webhookUrlItemSearch)
 
 		argsList = list(filter(lambda x: x != '', argsList))
