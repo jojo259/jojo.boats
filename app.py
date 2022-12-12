@@ -693,6 +693,24 @@ def addPlayerRoute(playerTag):
 
 	return {'success': True, 'message': 'added'}
 
+@app.route("/api/recentlyseenplayers", methods=['GET'])
+def recentlySeenPlayersRoute():
+
+	print('recentlySeenPlayersRoute')
+
+	curTime = time.time()
+	
+	foundDocs = database.playersCol.find({'$and': [{'lastsave': {'$gt': curTime - 3600}}, {'persist.frompanda': True}]})
+
+	playersList = []
+	for curDoc in foundDocs:
+		playerData = {'uuid': curDoc.get('_id', 'error'), 'usernamemaybe': curDoc.get('username', 'error'), 'lastsave': curDoc.get('lastsave')}
+		playersList.append(playerData)
+
+	print(f'	returning {len(playersList)} recently seen players')
+
+	return {'success': True, 'players': playersList, 'message': 'players seen by indexer in pit in past hour. usernamemaybe may be old username.'}
+
 @app.route(f"/api/{config.jojoKey}/pauseindexer/<extraPauseHours>", methods=['GET'])
 def pauseIndexerRoute(extraPauseHours):
 	print(f'pause indexer route')
