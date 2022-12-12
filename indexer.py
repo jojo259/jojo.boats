@@ -26,9 +26,7 @@ def genIndexTypes():
 	curTime = time.time()
 
 	indexTypes = {}
-	#indexTypes['tooOld'] = {'checktime':{'$lt': curTime - 86400 * 365}}
 
-	indexTypes['tempBetterCheckAt'] = {'$and': [{'checkat': {'$exists': False}}, {'hasmystics': True}, {'lastsave': {'$gt': curTime - 86400 * 180}}]}
 	indexTypes['missingCheckAt'] = {'$and': [{'checkat': {'$exists': False}}, {'hasmystics': True}]}
 	indexTypes['checkAt'] = {'checkat': {'$lt': curTime}}
 
@@ -37,18 +35,18 @@ def genIndexTypes():
 	return indexTypes
 
 def getHypixelApi(urlToGet):
-	try:
+	for i in range(64):
 		try:
-			apiCalled = requests.get(urlToGet, timeout = 3)
-			apiCalledJson = apiCalled.json()
-			return apiCalledJson
+			apiGot = requests.get(urlToGet, timeout = 10).json()
 		except Exception as e:
-			print('api error, probably timeout, retrying')
-			print(e)
-			print(urlToGet)
-	except Exception as e:
-		print(e)
-		print('error getHypixelApi')
+			print(f'getHypixelApi {e}')
+			time.sleep(1)
+			continue
+		if apiGot.get('success') == True:
+			return apiGot
+	print('getHypixelApi error')
+	discordsender.sendDiscord(f'getHypixelApi at {urlToGet}', config.webhookUrlErrors)
+	return {'success': False}
 
 def replaceColors(repStr):
 	try:
@@ -86,9 +84,9 @@ def addNewFriends():
 
 		newUuidsAdded = 0
 
-		for curRecord in apiGot['records']:
-			uuidSender = curRecord['uuidSender']
-			uuidReceiver = curRecord['uuidReceiver']
+		for curRecord in apiGot.get('records', []):
+			uuidSender = curRecord.get('uuidSender', '')
+			uuidReceiver = curRecord.get('uuidReceiver', '')
 
 			differentUuid = ''
 			if uuidSender != checkUuid:
@@ -122,14 +120,14 @@ def addPandaLeaderboardPage():
 
 		apiGot = getHypixelApi(apiUrl)
 
-		for curPlayer in apiGot['leaderboard']:
-			playerUuid = curPlayer['uuid']
+		for curPlayer in apiGot.get('leaderboard', []):
+			playerUuid = curPlayer.get('uuid', '')
 			addedNew = addFlagToUuid(playerUuid, 'frompanda', True)
 			if addedNew:
 				print(f'NEW panda {playerUuid}')
 	except Exception as e:
-		print(e)
-		print('error addPandaLeaderboardPage')
+		print(f'error addPandaLeaderboardPage {e}')
+		discordsender.sendDiscord(f'addPandaLeaderboardPage {e}', config.webhookUrlErrors)
 
 def indexPlayer(givenUuid):
 	#playerUuid = 'omicba'
@@ -522,8 +520,8 @@ def indexPlayer(givenUuid):
 					print('	' + str(apiGot)[:64].replace('\n', ''))
 
 	except Exception as e:
-		print(e)
-		print('error indexPlayer')
+		print(f'error indexPlayer {e}')
+		discordsender.sendDiscord(f'indexPlayer {e}', config.webhookUrlErrors)
 
 def findUuids(apiData):
 	#print('finding uuids')
@@ -663,36 +661,39 @@ def doLoop():
 
 		doneIndex = False
 
-		for indexName, indexQuery in indexTypes.items():
-			if indexName == 'randomOld':
-				if random.randint(1, 32) != 1:
-					continue
+		for atQuery, (indexName, indexQuery) in enumerate(indexTypes.items()):
+
+			if atQuery != len(indexTypes) - 1 and random.randint(1, 10) == 1: # random chance to just skip because i want it to pick which type somewhat randomly so that it favors the top index types but will also do the others sometimes even if there is a queue
+				continue
 
 			print(f'	checking {indexName}')
 			foundDoc = database.playersCol.find_one(indexQuery)
-			if foundDoc != None:
-				print(f'	foundDoc {int((time.time() - loopTimer) * 1000)}ms')
-				docUuid = foundDoc['_id']
 
-				print(f'indexing {docUuid} {indexName} indexedTimes = {int(len(indexedTimes))}')
-				indexPlayer(docUuid)
+			if foundDoc == None:
+				print(f'	checked {indexName} {int((time.time() - loopTimer) * 1000)}ms')
+				continue
 
-				print(f'	finishedIndex {int((time.time() - loopTimer) * 1000)}ms')
+			print(f'	foundDoc {int((time.time() - loopTimer) * 1000)}ms')
+			docUuid = foundDoc['_id']
 
-				doneIndex = True
+			print(f'indexing {docUuid} {indexName} indexedTimes = {int(len(indexedTimes))}')
+			indexPlayer(docUuid)
 
-				break
-			print(f'	checked {indexName} {int((time.time() - loopTimer) * 1000)}ms')
+			print(f'	finishedIndex {int((time.time() - loopTimer) * 1000)}ms')
+			doneIndex = True
+
+			break
 
 		if not doneIndex:
+			print('	no index completed, adding new friends')
 			for i in range(128):
 				addNewFriends()
 
-		if True:
-			indexedTimes.append(curTime)
-			indexedTimes = list(filter(lambda x: x > curTime - 60, indexedTimes))
+		indexedTimes.append(curTime)
+		indexedTimes = list(filter(lambda x: x > curTime - 60, indexedTimes))
 
 		print(f'	loopTimer {int((time.time() - loopTimer) * 1000)}ms')
+
 	except Exception as e:
-		print(e)
-		print('error mainloop')
+		print(f'error mainloop {e}')
+		discordsender.sendDiscord(f'doLoop {e}', config.webhookUrlErrors)
