@@ -345,8 +345,6 @@ def indexPlayer(givenUuid):
 					duplicateNonceDocs = list(database.mysticsCol.find({'item.nonce': itemNonce})) # could batch all these into one if slow (should be fine)
 					duplicateNonceCount = len(duplicateNonceDocs)
 
-					print(f'		item has {len(duplicateNonceDocs)} duplicate nonces')
-
 					# process item
 
 					newObjectId = bson.ObjectId()
@@ -355,6 +353,8 @@ def indexPlayer(givenUuid):
 					if duplicateNonceCount == 0:
 
 						# item has no duplicate nonce so it's a new item so insert
+
+						print(f'		mystic has {len(duplicateNonceDocs)} duplicate nonces')
 
 						mysticsColOperations.append(pymongo.InsertOne(newMysticDoc))
 
@@ -410,8 +410,6 @@ def indexPlayer(givenUuid):
 
 							# check for known patterns and modify mystic doc appropriately
 
-							itemDiffStr = f'itemTier {itemTier} tierDiff {tierDiff} tokensDiff {tokensDiff} itemNonce {itemNonce} itemOwner {playerUuid}'
-
 							# little messy...
 							# can also add check for tokens matching tier (t1: 1-2, t2: 2-4, t3: 3-8)
 							if tierDiff == 0 and tokensDiff == 0:
@@ -448,7 +446,8 @@ def indexPlayer(givenUuid):
 
 							foundItemInDb = True
 
-							print(f'		found item in db {itemDiffStr}')
+							itemDiffStr = f'itemTier {itemTier} tierDiff {tierDiff} tokensDiff {tokensDiff} itemNonce {itemNonce} itemOwner {playerUuid}'
+							print(f'		found item ({len(duplicateNonceDocs)} duplicates) in db {itemDiffStr}')
 
 							# do owner history
 
@@ -461,7 +460,7 @@ def indexPlayer(givenUuid):
 								else:
 
 									# item owner is not the same so append new entry to owners list
-									print('		item has new owner')
+									print('			item has new owner')
 									alrItemData['owners'].append({'uuid': playerUuid, 'first': curTime, 'last': curTime})
 
 							# add mystic doc to bulk operations lists
@@ -504,7 +503,7 @@ def indexPlayer(givenUuid):
 					database.itemsCol.insert_many(itemsToInsert)
 
 				if len(mysticsColOperations) > 0:
-					print(f'		doing mystic upserts for {len(mysticsColOperations)} mystics')
+					print(f'	doing mystic upserts for {len(mysticsColOperations)} mystics')
 					database.mysticsCol.bulk_write(mysticsColOperations)
 				else:
 					print('		no mystics to upsert')
