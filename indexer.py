@@ -28,6 +28,7 @@ def genIndexTypes():
 	indexTypes = {}
 	#indexTypes['tooOld'] = {'checktime':{'$lt': curTime - 86400 * 365}}
 
+	indexTypes['tempBetterCheckAt'] = {'$and': [{'checkat': {'$exists': False}}, {'hasmystics': True}, {'lastsave': {'$gt': curTime - 86400 * 180}}]}
 	indexTypes['missingCheckAt'] = {'$and': [{'checkat': {'$exists': False}}, {'hasmystics': True}]}
 	indexTypes['checkAt'] = {'checkat': {'$lt': curTime}}
 
