@@ -40,6 +40,7 @@ xpb xp_boost
 xpboost xp_boost
 sierra gold_per_diamond_piece
 pitpocket pickpocket
+combovenom venom
 combo:venom venom
 ch melee_combo_heal
 cheal melee_combo_heal
@@ -53,6 +54,7 @@ critrich gold_per_crit
 criticallyrich gold_per_crit
 ds melee_damage_vs_diamond
 stomp melee_damage_vs_diamond
+dstomp melee_damage_vs_diamond
 diamondstomp melee_damage_vs_diamond
 fr melee_damage_vs_leather
 fancy melee_damage_vs_leather
