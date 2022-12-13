@@ -454,13 +454,13 @@ def indexPlayer(givenUuid):
 								if alrItemData['owners'][-1]['uuid'] == playerUuid:
 
 									# item owner is the same so just update the last seen time
-									alrItemData['owners'][-1]['last'] = curTime
+									alrItemData['owners'][-1]['last'] = lastSave # update owner history to lastSave rather than curTime
 
 								else:
 
 									# item owner is not the same so append new entry to owners list
 									print('			item has new owner')
-									alrItemData['owners'].append({'uuid': playerUuid, 'first': curTime, 'last': curTime})
+									alrItemData['owners'].append({'uuid': playerUuid, 'first': lastSave, 'last': lastSave})
 
 							# add mystic doc to bulk operations lists
 
