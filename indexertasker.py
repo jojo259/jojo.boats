@@ -1,4 +1,5 @@
 import time
+import logging
 
 from flask import Flask
 from flask_apscheduler import APScheduler
@@ -6,9 +7,11 @@ from flask_apscheduler import APScheduler
 import indexer
 import config
 
+logging.getLogger('apscheduler').setLevel(logging.ERROR) # disable useless logs
+
 pauseUntil = 0
 
-secondsPerIndexerTask = 0.5 # will error like crazy if each task takes too long but whatever doesn't cause any issues "maximum number of running instances reached"
+secondsPerIndexerTask = 0.5
 if config.debugMode:
 	secondsPerIndexerTask = 99999
 
