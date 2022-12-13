@@ -301,9 +301,6 @@ def indexPlayer(givenUuid):
 						for curEnchant in itemPitEnchants:
 							itemTokens += curEnchant['Level']
 
-					if itemTokens == 0:
-						itemTokens = None
-
 					toInsert = {}
 
 					def addItemVal(addKey, addVal):
@@ -326,7 +323,8 @@ def indexPlayer(givenUuid):
 					addItemVal('owner', playerUuid)
 					addItemVal('ownerusername', playerUsername)
 					addItemVal('lastsave', lastSave)
-					addItemVal('tokens', itemTokens)
+					if itemTokens != 0:
+						addItemVal('tokens', itemTokens)
 					if playerFromPanda:
 						addItemVal('frompanda', True)
 
@@ -409,30 +407,28 @@ def indexPlayer(givenUuid):
 
 							# check for known patterns and modify mystic doc appropriately
 
-							# little messy...
-							# can also add check for tokens matching tier (t1: 1-2, t2: 2-4, t3: 3-8)
 							if tierDiff == 0 and tokensDiff == 0:
 								# same item no changes
 								pass
-							elif tierDiff == 1 and itemTier == 1 and tokensDiff <= 2 and tokensDiff >= 1:
+							elif tierDiff == 1 and itemTier == 1 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 1 and itemTokens <= 2:
 								# tier 0 --> tier 1
 								pass
-							elif tierDiff == 1 and itemTier == 2 and tokensDiff <= 2 and tokensDiff >= 1:
+							elif tierDiff == 1 and itemTier == 2 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 1 --> tier 2
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
-							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1:
+							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 2 --> tier 3 and potentially gemmed
 								alrItemData['tier2'] = alrItem.get('enchpit', [])
-							elif tierDiff == 2 and itemTier == 2 and tokensDiff <= 4 and tokensDiff >= 2:
+							elif tierDiff == 2 and itemTier == 2 and tokensDiff <= 4 and tokensDiff >= 2 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 0 --> tier 2
 								pass
-							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2:
+							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 1 --> tier 3 and potentially gemmed
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
-							elif tierDiff == 3 and itemTier == 3 and tokensDiff <= 8 and tokensDiff >= 3:
+							elif tierDiff == 3 and itemTier == 3 and tokensDiff <= 8 and tokensDiff >= 3 and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 0 --> tier 3
 								pass
-							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1:
+							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8:
 								# gemmed (can only gem at t3)
 								pass
 							else:
