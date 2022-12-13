@@ -27,6 +27,7 @@ from PIL import ImageColor
 from dotenv import load_dotenv
 load_dotenv()
 
+import pymongo
 import bson
 
 from flask import Flask, render_template, request, session, send_from_directory, url_for, redirect, send_file
@@ -146,11 +147,6 @@ def itemReq(page):
 	except Exception as e:
 		print(e)
 		return 'error moment'
-
-@app.route("/api/addtoindexerqueue/<playerTag>", methods=['GET'])
-def addToIndexerQueueRoute(playerTag):
-	indexertasker.addToIndexerQueue(playerTag)
-	return {'success': True, 'message': 'added'}
 
 @app.route("/api/items/<path:page>", methods=['GET'])
 def itemReqApi(page):
@@ -679,19 +675,33 @@ def addPlayerRoute(playerTag):
 
 	print(f'add player route')
 
-	if playerTag in playersAdded:
-		print(f'	already added {playerTag}')
-		return {'success': True, 'message': 'already added'}
+	toAdd = [playerTag]
+	if ',' in playerTag:
+		toAdd = playerTag.split(',')
 
-	playersAdded.append(playerTag)
-	if len(playersAdded) > 4096:
-		playersAdded = playersAdded[2048:]
+	bulkOps = []
 
-	database.playersCol.update_one({'_id': playerTag}, {'$set': {'persist.checkedpit': False}}, upsert = True)
+	for curTag in toAdd:
+		if curTag in playersAdded:
+			print(f'	already added {curTag}')
+			continue
 
-	print(f'	upserted {playerTag}')
+		playersAdded.append(curTag)
+		if len(playersAdded) > 16384:
+			playersAdded = playersAdded[8192:]
 
-	return {'success': True, 'message': 'added'}
+		bulkOps.append(pymongo.UpdateOne({'_id': curTag}, {'$set': {'persist.fromboats': True}}, upsert = True))
+
+		print(f'	upserted {curTag}')
+
+	bulksOpsLen = len(bulkOps)
+
+	if bulksOpsLen > 0:
+		database.playersCol.bulk_write(bulkOps)
+
+	print(f'	upserted {bulksOpsLen} players')
+
+	return {'success': True, 'message': f'upserted', 'upsertedcount': bulksOpsLen}
 
 @app.route("/api/recentlyseenplayers", methods=['GET'])
 def recentlySeenPlayersRoute():
