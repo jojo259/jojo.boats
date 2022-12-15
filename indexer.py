@@ -20,6 +20,7 @@ import config
 import database
 import discordsender
 import indexerstats
+import util
 
 print('connecting')
 
@@ -507,6 +508,8 @@ def indexPlayer(givenUuid):
 				playerCheckAt = int(curTime + max(600, (curTime - lastSave) / checkPlayerDiffConstant))
 
 				addToUpsert(playerCheckAt, 'checkat')
+
+				print(f'	player last save was {util.prettyTimeStr(lastSave)}, checking again {util.prettyTimeStr(playerCheckAt)}')
 
 				database.playersCol.replace_one({'_id': playerUuid}, toUpsert, upsert = True)
 				addFlagToUuid(playerUuid, 'checkedpit', True) # REORGANIZE ? idk
