@@ -19,6 +19,7 @@ import bson
 import config
 import database
 import discordsender
+import indexerstats
 
 print('connecting')
 
@@ -286,7 +287,7 @@ def indexPlayer(givenUuid):
 					itemMaxLives = getVal(curItem, ['tag','ExtraAttributes','MaxLives'])
 					itemTier = getVal(curItem, ['tag','ExtraAttributes','UpgradeTier'])
 					itemGemmed = getVal(curItem, ['tag','ExtraAttributes','UpgradeGemsUses'])
-					itemGemmed = True if itemGemmed == 1 else None
+					itemGemmed = True if itemGemmed == 1 else False
 					itemId = getVal(curItem, ['id'])
 					itemColor = getVal(curItem, ['tag','display','color'])
 					itemLore = getVal(curItem, ['tag','display','Lore'])
@@ -307,6 +308,7 @@ def indexPlayer(givenUuid):
 						if addVal != None and addVal != []:
 							toInsert[addKey] = addVal
 
+					# stupid setup
 					addItemVal('name', itemName)
 					addItemVal('nameclean', itemNameClean)
 					addItemVal('count', itemCount)
@@ -316,7 +318,6 @@ def indexPlayer(givenUuid):
 					addItemVal('lives', itemLives)
 					addItemVal('maxlives', itemMaxLives)
 					addItemVal('tier', itemTier)
-					addItemVal('gemmed', itemGemmed)
 					addItemVal('id', itemId)
 					addItemVal('color', itemColor)
 					addItemVal('lore', itemLore)
@@ -325,6 +326,8 @@ def indexPlayer(givenUuid):
 					addItemVal('lastsave', lastSave)
 					if itemTokens != 0:
 						addItemVal('tokens', itemTokens)
+					if itemGemmed != False:
+						addItemVal('gemmed', itemGemmed)
 					if playerFromPanda:
 						addItemVal('frompanda', True)
 
@@ -407,28 +410,36 @@ def indexPlayer(givenUuid):
 
 							# check for known patterns and modify mystic doc appropriately
 
+							seemsNewlyGemmed = itemGemmed and (alrItem.get('gemmed') == None or alrItem.get('gemmed') == False)
+
 							if tierDiff == 0 and tokensDiff == 0:
 								# same item no changes
 								pass
 							elif tierDiff == 1 and itemTier == 1 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 1 and itemTokens <= 2:
 								# tier 0 --> tier 1
+								indexerstats.incStat('upgradedtotier1')
 								pass
 							elif tierDiff == 1 and itemTier == 2 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 1 --> tier 2
+								indexerstats.incStat('upgradedtotier2')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
 							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 2 --> tier 3 and potentially gemmed
+								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier2'] = alrItem.get('enchpit', [])
 							elif tierDiff == 2 and itemTier == 2 and tokensDiff <= 4 and tokensDiff >= 2 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 0 --> tier 2
+								indexerstats.incStat('upgradedtotier2')
 								pass
 							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 1 --> tier 3 and potentially gemmed
+								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
 							elif tierDiff == 3 and itemTier == 3 and tokensDiff <= 8 and tokensDiff >= 3 and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 0 --> tier 3
+								indexerstats.incStat('upgradedtotier3')
 								pass
-							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8:
+							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8 and seemsNewlyGemmed: # alrItem.get('gemmed') should be None but could be False in future
 								# gemmed (can only gem at t3)
 								pass
 							else:
@@ -436,6 +447,9 @@ def indexPlayer(givenUuid):
 								continue
 
 							# this is (almost certainly) the same item
+
+							if seemsNewlyGemmed:
+								indexerstats.incStat('gemmed')
 
 							alrItemData['item'] = copy.deepcopy(toInsert)
 
@@ -457,6 +471,7 @@ def indexPlayer(givenUuid):
 									# item owner is not the same so append new entry to owners list
 									print('			item has new owner')
 									alrItemData['owners'].append({'uuid': playerUuid, 'first': lastSave, 'last': lastSave})
+									indexerstats.incStat('ownerchanges')
 
 							# add mystic doc to bulk operations lists
 
@@ -472,6 +487,8 @@ def indexPlayer(givenUuid):
 							# didnt find item in db, new item
 
 							print(f'		didnt find item in db')
+
+							indexerstats.incStat('newregularmystic')
 
 							toInsert.update({'mysticid': str(newObjectId)})
 							itemsToInsert.append(toInsert)
@@ -684,6 +701,8 @@ def doLoop():
 			print(f'	finishedIndex {int((time.time() - loopTimer) * 1000)}ms')
 			doneIndex = True
 
+			indexerstats.incStat('indexedplayers')
+
 			break
 
 		if not doneIndex:
@@ -696,6 +715,8 @@ def doLoop():
 
 		print(f'	loopTimer {int((time.time() - loopTimer) * 1000)}ms')
 
+		indexerstats.checkIfNeedToSaveStats()
+		
 	except Exception as e:
-		print(f'error mainloop {e}')
+		print(f'error doLoop {e}')
 		discordsender.sendDiscord(f'doLoop {e}', config.webhookUrlErrors)

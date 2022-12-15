@@ -8,4 +8,5 @@ playersCol = curDb['pitplayers']
 itemsCol = curDb['pititems']
 mysticsCol = curDb['pitmystics']
 discordsCol = curDb['pitdiscords']
+indexerStatsCol = curDb['indexerstats']
 print('connected to db')

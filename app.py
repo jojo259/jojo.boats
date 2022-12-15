@@ -712,6 +712,15 @@ def addPlayerRoute(playerTag):
 
 	return {'success': True, 'message': f'upserted', 'upsertedcount': bulksOpsLen}
 
+@app.route("/api/indexerstats", methods=['GET'])
+def indexerStatsRoute():
+
+	hourNum = int(time.time() / 3600)
+
+	curStats = database.indexerStatsCol.find_one({'_id': hourNum})
+
+	return {'stats': curStats}
+
 @app.route("/api/recentlyseenplayers", methods=['GET'])
 def recentlySeenPlayersRoute():
 
