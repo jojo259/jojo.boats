@@ -516,8 +516,10 @@ def indexPlayer(givenUuid):
 					print('	' + str(apiGot)[:64].replace('\n', ''))
 
 					# why doesnt it have a 'cause'
+					# turns out sometimes it just returns {'success': False} :shrug:
 
-					discordsender.sendDiscord(f'indexPlayer noCause {str(apiGot)[:512]}', config.webhookUrlErrors)
+					if apiGot != {'success': False}: # would still like to see other errors
+						discordsender.sendDiscord(f'indexPlayer noCause {str(apiGot)[:512]}', config.webhookUrlErrors)
 
 	except Exception as e:
 		print(f'error indexPlayer {e}')
