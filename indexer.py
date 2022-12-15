@@ -507,13 +507,17 @@ def indexPlayer(givenUuid):
 
 			elif apiGot['success'] == False:
 				print('	success false')
-				if apiGot['cause'] == 'Malformed UUID':
+				if apiGot.get('cause') == 'Malformed UUID':
 					print('	malformed UUID, deleting')
 					database.playersCol.delete_one({'_id': playerUuid})
-				elif apiGot['cause'] == 'You have already looked up this name recently':
+				elif apiGot.get('cause') == 'You have already looked up this name recently':
 					print('	looked up too recently')
 				else:
 					print('	' + str(apiGot)[:64].replace('\n', ''))
+
+					# why doesnt it have a 'cause'
+
+					discordsender.sendDiscord(f'indexPlayer noCause {str(apiGot)[:512]}', config.webhookUrlErrors)
 
 	except Exception as e:
 		print(f'error indexPlayer {e}')
