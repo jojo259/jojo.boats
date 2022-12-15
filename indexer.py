@@ -503,7 +503,7 @@ def indexPlayer(givenUuid):
 						toUpsert['persist'] = playerDocAlready['persist']
 						toUpsert['persist']['checkedpit'] = True
 
-				checkPlayerDiffConstant = 24
+				checkPlayerDiffConstant = 8
 				playerCheckAt = int(curTime + max(600, (curTime - lastSave) / checkPlayerDiffConstant))
 
 				addToUpsert(playerCheckAt, 'checkat')
