@@ -71,6 +71,7 @@ painfocus melee_damage_when_low
 grasshopper melee_damage_when_on_grass
 da less_damage_vs_diamond_weapons
 diamondallergy less_damage_vs_diamond_weapons
+diamond_allergy less_damage_vs_diamond_weapons
 excess overheal_enchant
 ringarmor less_damage_from_arrows
 strikegold gold_per_hit
@@ -81,7 +82,7 @@ davidandgoliath less_damage_vs_bounties
 fletch bow_damage
 fletching bow_damage
 wdky heal_on_shoot_self
-whatdoesnkillyou heal_on_shoot_self
+whatdoesntkillyou heal_on_shoot_self
 reab respawn_with_absorption
 resab respawn_with_absorption
 resabs respawn_with_absorption
@@ -90,6 +91,7 @@ respawnabs respawn_with_absorption
 resabsorption respawn_with_absorption
 respawnabsorption respawn_with_absorption
 respawn:absorption respawn_with_absorption
+steak steaks_on_kill
 steaks steaks_on_kill
 gam melee_gamble
 gamble melee_gamble
