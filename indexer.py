@@ -221,9 +221,9 @@ def indexPlayer(givenUuid):
 
 				addToUpsert(lastSave, 'lastsave')
 
-				#playerXp = getVal(apiGot, ['player', 'stats', 'Pit', 'profile', 'xp'])
+				playerXp = getVal(apiGot, ['player', 'stats', 'Pit', 'profile', 'xp'])
 
-				#addToUpsert(playerXp, 'xp')
+				addToUpsert(playerXp, 'xp')
 
 				#print(f'	deletingMany')
 

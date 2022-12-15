@@ -386,10 +386,19 @@ def mysticSearchRoute(queryStr):
 
 		paramKey, paramVal, paramOperator = getEnchantKeyValueOperator(curParam)
 
-		if paramKey.startswith('maxlives'):
+		specialNumberParams = ['lives', 'maxlives', 'nonce', 'tier', 'id']
 
-			print(f'	curParam maxlives {curParam}')
-			dbQueryAnds.append({'item.maxlives': {paramOperator: paramVal}})
+		gotSpecial = False
+		for specialParamName in specialNumberParams:
+
+			if paramKey.startswith(specialParamName):
+
+				gotSpecial = True
+				print(f'	curParam {specialParamName} {curParam}')
+				dbQueryAnds.append({f'item.{specialParamName}': {paramOperator: paramVal}})
+				break
+
+		if gotSpecial:
 			continue
 
 		# now we have to assume it is an enchant param, which also uses number values but can be any key (hopefully it is an enchant)
