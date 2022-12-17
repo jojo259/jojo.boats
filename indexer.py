@@ -505,7 +505,7 @@ def indexPlayer(givenUuid):
 						toUpsert['persist']['checkedpit'] = True
 
 				checkPlayerDiffConstant = 8
-				playerCheckAt = int(curTime + max(600, (curTime - lastSave) / checkPlayerDiffConstant))
+				playerCheckAt = int(curTime + max(600, (curTime - lastSave) / checkPlayerDiffConstant) * (0.9 + random.random() / 5))
 
 				addToUpsert(playerCheckAt, 'checkat')
 
