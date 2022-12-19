@@ -42,10 +42,9 @@ def getHypixelApi(urlToGet):
 			apiGot = requests.get(urlToGet, timeout = 10).json()
 		except Exception as e:
 			print(f'getHypixelApi {e}')
-			time.sleep(1)
-			continue
 		if apiGot.get('success') == True:
 			return apiGot
+		time.sleep(1)
 	print('getHypixelApi error')
 	discordsender.sendDiscord(f'getHypixelApi at {urlToGet}', config.webhookUrlErrors)
 	return {'success': False}
@@ -537,6 +536,7 @@ def indexPlayer(givenUuid):
 
 					# why doesnt it have a 'cause'
 					# turns out sometimes it just returns {'success': False} :shrug:
+					# nevermind that was just being returned by getHypixelApi function
 
 					if apiGot != {'success': False}: # would still like to see other errors
 						discordsender.sendDiscord(f'indexPlayer noCause {str(apiGot)[:512]}', config.webhookUrlErrors)
@@ -710,8 +710,7 @@ def doLoop():
 
 		if not doneIndex:
 			print('	no index completed, adding new friends')
-			for i in range(128):
-				addNewFriends()
+			addNewFriends()
 
 		indexedTimes.append(curTime)
 		indexedTimes = list(filter(lambda x: x > curTime - 60, indexedTimes))
