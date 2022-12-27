@@ -40,10 +40,10 @@ def getHypixelApi(urlToGet):
 	for i in range(64):
 		try:
 			apiGot = requests.get(urlToGet, timeout = 10).json()
+			if apiGot.get('success') == True:
+				return apiGot
 		except Exception as e:
 			print(f'getHypixelApi {e}')
-		if apiGot.get('success') == True:
-			return apiGot
 		time.sleep(1)
 	print('getHypixelApi error')
 	discordsender.sendDiscord(f'getHypixelApi at {urlToGet}', config.webhookUrlErrors)
