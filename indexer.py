@@ -418,38 +418,42 @@ def indexPlayer(givenUuid):
 							elif tierDiff == 1 and itemTier == 1 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 1 and itemTokens <= 2:
 								# tier 0 --> tier 1
 								indexerstats.incStat('upgradedtotier1')
-								pass
+								alrItemData['tier1seenat'] = curTime
 							elif tierDiff == 1 and itemTier == 2 and tokensDiff <= 2 and tokensDiff >= 1 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 1 --> tier 2
 								indexerstats.incStat('upgradedtotier2')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
+								alrItemData['tier2seenat'] = curTime
 							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 2 --> tier 3 and potentially gemmed
 								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier2'] = alrItem.get('enchpit', [])
+								alrItemData['tier3seenat'] = curTime
 							elif tierDiff == 2 and itemTier == 2 and tokensDiff <= 4 and tokensDiff >= 2 and itemTokens >= 2 and itemTokens <= 4:
 								# tier 0 --> tier 2
 								indexerstats.incStat('upgradedtotier2')
-								pass
+								alrItemData['tier2seenat'] = curTime
 							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 1 --> tier 3 and potentially gemmed
 								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
+								alrItemData['tier3seenat'] = curTime
 							elif tierDiff == 3 and itemTier == 3 and tokensDiff <= 8 and tokensDiff >= 3 and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 0 --> tier 3
 								indexerstats.incStat('upgradedtotier3')
-								pass
+								alrItemData['tier3seenat'] = curTime
 							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8 and seemsNewlyGemmed: # alrItem.get('gemmed') should be None but could be False in future
 								# gemmed (can only gem at t3)
 								pass
 							else:
-								# unknown pattern so ignore
+								# unknown pattern so not same item
 								continue
 
 							# this is (almost certainly) the same item
 
 							if seemsNewlyGemmed:
 								indexerstats.incStat('gemmed')
+								alrItemData['gemseenat'] = curTime
 
 							alrItemData['item'] = copy.deepcopy(toInsert)
 
@@ -472,6 +476,13 @@ def indexPlayer(givenUuid):
 									print('			item has new owner')
 									alrItemData['owners'].append({'uuid': playerUuid, 'first': lastSave, 'last': lastSave})
 									indexerstats.incStat('ownerchanges')
+
+							elif itemTier == 0:
+
+								# update last seen time on owner history if still with same player
+
+								if alrItemData['owners'][-1]['uuid'] == playerUuid:
+									alrItemData['owners'][-1]['last'] = lastSave
 
 							# add mystic doc to bulk operations lists
 
