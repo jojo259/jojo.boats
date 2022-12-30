@@ -720,7 +720,7 @@ def indexerStatsRoute():
 
 	curStats = database.indexerStatsCol.find_one({'_id': hourNum})
 
-	return {'stats': curStats}
+	return {'success': True, 'stats': curStats, 'message': 'field `_id` is the start of the epoch hour that these stats are for (the current hour)'}
 
 @app.route("/api/recentlyseenplayers", methods=['GET'])
 def recentlySeenPlayersRoute():
