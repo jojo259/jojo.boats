@@ -275,7 +275,7 @@ def itemReqApi(page):
 		else:
 			dbQuery = {'$and': dbQueryAnds}
 
-			foundItems = database.itemsCol.find(dbQuery).limit(returnItemsLimit + 1) # (bc idk if mongodb is actually aware whether it returned all the documents or the .limit actually kicked in so that's just detected below)
+			foundItems = database.itemsCol.find(dbQuery).limit(returnItemsLimit + 1).sort('lastsave', -1) # (bc idk if mongodb is actually aware whether it returned all the documents or the .limit actually kicked in so that's just detected below)
 
 		foundItemsList = []
 
