@@ -751,6 +751,29 @@ def pauseIndexerRoute(extraPauseHours):
 	indexertasker.pauseUntil = newPauseUntil
 	return {'success': True, 'newpauseuntil': newPauseUntil}
 
+@app.route(f'/api/{config.jojoKey}/notablemessages', methods=['GET'])
+def tradingMessagesRoute():
+
+	curTime = time.time()
+
+	searchText = request.args.get('search', '')
+	maxHoursAgo = request.args.get('maxhours')
+	if maxHoursAgo != None:
+		if maxHoursAgo.isnumeric():
+			maxHoursAgo = int(maxHoursAgo)
+
+	if maxHoursAgo == None:
+		maxHoursAgo = 99999
+
+	foundDocs = list(database.notableMessagesCol.find({'$and': [{'time': {'$gt': curTime - maxHoursAgo * 3600}}, {'$text': {'$search': searchText, '$language': 'en', '$caseSensitive': False, '$diacriticSensitive': False}}]}, {'score': {'$meta': 'textScore'}}).sort('score', {'$meta': 'textScore'}).limit(512))
+
+	for curDoc in foundDocs:
+		curDoc.pop('_id', None)
+
+	print(f'done notable messages search with max hours {maxHoursAgo} and search {searchText}')
+
+	return {'success': True, 'message': f'here are matches', 'found': foundDocs}
+
 @app.route("/api/checkdiscord/<discordId>", methods=['GET'])
 def checkDiscordRoute(discordId):
 	print('check discord')

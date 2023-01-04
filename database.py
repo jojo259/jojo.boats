@@ -9,4 +9,5 @@ itemsCol = curDb['pititems']
 mysticsCol = curDb['pitmystics']
 discordsCol = curDb['pitdiscords']
 indexerStatsCol = curDb['indexerstats']
+notableMessagesCol = curDb['notablemessages']
 print('connected to db')
