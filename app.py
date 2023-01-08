@@ -584,7 +584,7 @@ def itemImageRoute():
 	itemImage = PIL.Image.new('RGB', (maxImageSize, maxImageSize), color = (18, 2, 17))
 	drawObj = ImageDraw.Draw(itemImage)
 
-	imageWidth = min(maxImageSize, boxPadding * 2 + max(list(map(lambda curLine: drawObj.textlength(re.sub(r'§.', '', curLine), font = minecraftFontRegular), itemLines))))
+	imageWidth = min(maxImageSize, boxPadding * 2 + max(list(map(lambda curLine: drawObj.textlength(re.sub(r'§.', '', curLine).replace('❤', '♥'), font = minecraftFontRegular), itemLines))))
 	imageHeight = min(maxImageSize, len(itemLines) * textSize + boxPadding * 2)
 	itemImage = itemImage.crop((0, 0, imageWidth, imageHeight))
 	drawObj = ImageDraw.Draw(itemImage) # kinda lost but whatever
