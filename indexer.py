@@ -424,7 +424,7 @@ def indexPlayer(givenUuid):
 								indexerstats.incStat('upgradedtotier2')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
 								alrItemData['tier2seenat'] = curTime
-							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed)) and tokensDiff >= 1 and itemTokens >= 3 and itemTokens <= 8:
+							elif tierDiff == 1 and itemTier == 3 and (tokensDiff <= 4 or (tokensDiff <= 5 and itemGemmed and seemsNewlyGemmed)) and tokensDiff >= 1 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 2 --> tier 3 and potentially gemmed
 								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier2'] = alrItem.get('enchpit', [])
@@ -433,7 +433,7 @@ def indexPlayer(givenUuid):
 								# tier 0 --> tier 2
 								indexerstats.incStat('upgradedtotier2')
 								alrItemData['tier2seenat'] = curTime
-							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed)) and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
+							elif tierDiff == 2 and itemTier == 3 and (tokensDiff <= 6 or (tokensDiff <= 7 and itemGemmed and seemsNewlyGemmed)) and tokensDiff >= 2 and itemTokens >= 3 and itemTokens <= 8:
 								# tier 1 --> tier 3 and potentially gemmed
 								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier1'] = alrItem.get('enchpit', [])
@@ -442,7 +442,7 @@ def indexPlayer(givenUuid):
 								# tier 0 --> tier 3
 								indexerstats.incStat('upgradedtotier3')
 								alrItemData['tier3seenat'] = curTime
-							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8 and seemsNewlyGemmed: # alrItem.get('gemmed') should be None but could be False in future
+							elif tierDiff == 0 and itemTier == 3 and tokensDiff == 1 and itemTokens >= 3 and itemTokens <= 8 and itemGemmed and seemsNewlyGemmed: # alrItem.get('gemmed') should be None but could be False in future
 								# gemmed (can only gem at t3)
 								pass
 							else:
