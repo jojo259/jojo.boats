@@ -543,7 +543,9 @@ def itemImageRoute():
 		itemJson = json.loads(argsItemJson)
 
 		argsName = itemJson.get('tag', {}).get('display', {}).get('Name')
-		argsLore = ',,,'.join(itemJson.get('tag', {}).get('display', {}).get('Lore'))
+		argsLore = itemJson.get('tag', {}).get('display', {}).get('Lore')
+		if argsLore != None:
+			argsLore = ',,,'.join(argsLore)
 
 		if argsName == None or argsLore == None:
 			# pitpand/jojoboats/other processed item data
