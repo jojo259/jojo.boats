@@ -10,4 +10,5 @@ mysticsCol = curDb['pitmystics']
 discordsCol = curDb['pitdiscords']
 indexerStatsCol = curDb['indexerstats']
 notableMessagesCol = curDb['notablemessages']
+friendsCol = curDb['friends']
 print('connected to db')

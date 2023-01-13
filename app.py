@@ -724,6 +724,24 @@ def indexerStatsRoute():
 
 	return {'success': True, 'stats': curStats, 'message': 'field `_id` is the start of the epoch hour that these stats are for (the current hour)'}
 
+@app.route("/api/friendspath/<uuidA>/<uuidB>", methods=['GET'])
+def friendsPathRoute(uuidA, uuidB):
+
+	uuidA = uuidA.replace('-', '')
+	uuidB = uuidB.replace('-', '')
+
+	if len(uuidA) != 32:
+		apiUrl = f'https://api.mojang.com/users/profiles/minecraft/{uuidA}'
+		uuidA = requests.get(apiUrl, timeout = 10).json()['id']
+
+	if len(uuidB) != 32:
+		apiUrl = f'https://api.mojang.com/users/profiles/minecraft/{uuidB}'
+		uuidB = requests.get(apiUrl, timeout = 10).json()['id']
+
+	friendsPath = util.findFriendsPath(uuidA, uuidB)
+
+	return {'success': True, 'path': friendsPath}
+
 @app.route("/api/recentlyseenplayers", methods=['GET'])
 def recentlySeenPlayersRoute():
 
