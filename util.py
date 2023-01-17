@@ -83,7 +83,8 @@ def findFriendsPath(uuidA, uuidB):
 	uuidsCheckQueue = [uuidToInt(uuidA)]
 	checkedUuids = {}
 
-	friendDocsBatched = []
+	fetchedFriendsLists = {}
+	friendsListsSinceFetched = 248 # will try to start fetching after 8 initial friends lists
 
 	for atLoop in range(4096):
 
@@ -94,14 +95,28 @@ def findFriendsPath(uuidA, uuidB):
 
 		checkedUuids[atUuid] = True
 
-		fullUuid = getFullUuid(intToShortenedUuid(atUuid))
+		if friendsListsSinceFetched > 256:
+			friendsListsSinceFetched = 0
+			fetchedFriendsDocsList = database.friendsCol.find({'_id': {'$in': uuidsCheckQueue[:256]}})
+			fetchedFriendsLists = {}
+			for friendsDoc in fetchedFriendsDocsList:
+				fetchedFriendsLists[friendsDoc['_id']] = friendsDoc['friends']
+			print(f'fetched {len(fetchedFriendsLists.keys())} friends lists from db')
 
-		if fullUuid == None:
-			print(f'full uuid not found for {atUuid}')
-			continue
+		friendsListsSinceFetched += 1
 
-		print(f'getting friends for {fullUuid}')
-		uuidFriends = getFriendsFor(fullUuid, intifyFriends = True)
+		uuidFriends = fetchedFriendsLists.get(atUuid)
+		if uuidFriends == None:
+			fullUuid = getFullUuid(intToShortenedUuid(atUuid))
+
+			if fullUuid == None:
+				print(f'full uuid not found for {atUuid}')
+				continue
+
+			print(f'getting friends for {fullUuid}')
+			uuidFriends = getFriendsFor(fullUuid, intifyFriends = True)
+		else:
+			print(f'got friends list from fetched for {atUuid}')
 
 		if uuidFriends == None:
 			continue
