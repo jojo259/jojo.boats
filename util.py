@@ -85,7 +85,7 @@ def findFriendsPath(uuidA, uuidB):
 
 	friendDocsBatched = []
 
-	for atLoop in range(2048):
+	for atLoop in range(4096):
 
 		if len(uuidsCheckQueue) == 0:
 			return 'no more uuids to check'
@@ -94,29 +94,17 @@ def findFriendsPath(uuidA, uuidB):
 
 		checkedUuids[atUuid] = True
 
-		uuidFriends = []
+		fullUuid = getFullUuid(intToShortenedUuid(atUuid))
 
-		docGot = database.friendsCol.find_one({'_id': atUuid})
+		if fullUuid == None:
+			print(f'full uuid not found for {atUuid}')
+			continue
 
-		if docGot != None:
+		print(f'getting friends for {fullUuid}')
+		uuidFriends = getFriendsFor(fullUuid, intifyFriends = True)
 
-			print(f'checking {atLoop + 1} uuid {atUuid} getting from db')
-
-			uuidFriends = list(map(lambda x: int(x), docGot.get('friends', [])))
-
-		else:
-
-			print(f'checking {atLoop + 1} uuid {atUuid} getting from api')
-
-			fullUuid = getFullUuid(intToShortenedUuid(atUuid))
-
-			if fullUuid == None:
-				print(f'full uuid not found for {atUuid}')
-				continue
-
-			uuidFriends = getFriendsFor(fullUuid, intifyFriends = True)
-			if uuidFriends == None:
-				uuidFriends = []
+		if uuidFriends == None:
+			continue
 
 		for friendUuid in uuidFriends:
 
@@ -126,14 +114,14 @@ def findFriendsPath(uuidA, uuidB):
 			if friendUuid not in friendRoutes:
 				friendRoutes[friendUuid] = atUuid
 
-		if uuidToInt(uuidB[:12]) in uuidFriends:
+		if uuidToInt(uuidB) in uuidFriends:
 			break
 
 	friendPath = [uuidToInt(uuidB)]
 
 	for i in range(8):
 		if friendPath[-1] != uuidToInt(uuidA):
-			friendPath.append(friendRoutes[friendPath[-1]])
+			friendPath.append(friendRoutes.get(friendPath[-1], 0))
 
 	friendPath = list(reversed(friendPath))
 
