@@ -73,35 +73,24 @@ def addNewFriends():
 		if newFriendToCheckDoc != None:
 			newFriendToCheckDocUuid = newFriendToCheckDoc['_id']
 			return newFriendToCheckDoc['_id']
-		print('couldnt find new friend to check uuid, doing jojo')
+		print('couldnt find new friend to check uuid, doing jojo') # hopefully jojo always has some friends
 		return '1f2e58ced9164d55bd3fa7f4a81dd09f'
 
 	def addFriends(checkUuid):
-		if len(checkUuid) == 32:
-			apiUrl = f'https://api.hypixel.net/friends?key={config.hypixelApiKey}&uuid={checkUuid}'
-		else:
-			apiUrl = f'https://api.hypixel.net/friends?key={config.hypixelApiKey}&name={checkUuid}'
-		apiGot = getHypixelApi(apiUrl)
+		playerFriends = util.getFriendsFor(checkUuid)
+
+		if playerFriends == None: # failed
+			return
 
 		newUuidsAdded = 0
-
-		for curRecord in apiGot.get('records', []):
-			uuidSender = curRecord.get('uuidSender', '')
-			uuidReceiver = curRecord.get('uuidReceiver', '')
-
-			differentUuid = ''
-			if uuidSender != checkUuid:
-				differentUuid = uuidSender
-			else:
-				differentUuid = uuidReceiver
-
-			addedFriend = addFlagToUuid(differentUuid, 'fromfriends', True)
+		for friendUuid in playerFriends:
+			addedFriend = util.addFlagToUuid(friendUuid, 'fromfriends', True)
 			if addedFriend:
 				newUuidsAdded += 1
 
 		print(f'added friends from {checkUuid}: {newUuidsAdded}')
 
-		addFlagToUuid(checkUuid, 'checkedfriends', True)
+		util.addFlagToUuid(checkUuid, 'checkedfriends', True)
 
 	checkUuid = findNewFriendUuid()
 
@@ -123,7 +112,7 @@ def addPandaLeaderboardPage():
 
 		for curPlayer in apiGot.get('leaderboard', []):
 			playerUuid = curPlayer.get('uuid', '')
-			addedNew = addFlagToUuid(playerUuid, 'frompanda', True)
+			addedNew = util.addFlagToUuid(playerUuid, 'frompanda', True)
 			if addedNew:
 				print(f'NEW panda {playerUuid}')
 	except Exception as e:
@@ -167,11 +156,11 @@ def indexPlayer(givenUuid):
 			if apiGot['success'] == True:
 				#print(f'gotApi {int((time.time() - apiTimer) * 1000)}ms')
 
-				addFlagToUuid(playerUuid, 'checkalltag', True)
+				util.addFlagToUuid(playerUuid, 'checkalltag', True)
 
 				playerData = getVal(apiGot, ['player'])
 				if playerData == None:
-					addFlagToUuid(playerUuid, 'checkedpit', True)
+					util.addFlagToUuid(playerUuid, 'checkedpit', True)
 
 					database.playersCol.delete_one({'_id': givenUuid})
 
@@ -261,12 +250,12 @@ def indexPlayer(givenUuid):
 
 					database.playersCol.replace_one({'_id': playerUuid}, toUpsert, upsert = True)
 
-					addFlagToUuid(playerUuid, 'checkedpit', True)
-					addFlagToUuid(playerUuid, 'haspit', False)
+					util.addFlagToUuid(playerUuid, 'checkedpit', True)
+					util.addFlagToUuid(playerUuid, 'haspit', False)
 					addToUpsert(curTime + 86400 * 365, 'checkat')
 					print('	no pit data')
 					return
-				addFlagToUuid(playerUuid, 'haspit', True) # ??
+				util.addFlagToUuid(playerUuid, 'haspit', True) # ??
 
 				mysticsColOperations = []
 				itemsToInsert = []
@@ -522,7 +511,7 @@ def indexPlayer(givenUuid):
 				print(f'	player last save was {util.prettyTimeStr(lastSave)}, checking again {util.prettyTimeStr(playerCheckAt)}')
 
 				database.playersCol.replace_one({'_id': playerUuid}, toUpsert, upsert = True)
-				addFlagToUuid(playerUuid, 'checkedpit', True) # REORGANIZE ? idk
+				util.addFlagToUuid(playerUuid, 'checkedpit', True) # REORGANIZE ? idk
 
 				if len(itemsToInsert) > 0:
 					database.itemsCol.insert_many(itemsToInsert)
@@ -566,7 +555,7 @@ def findUuids(apiData):
 		if len(checkUuid) == 32:
 			if checkUuid[12] == '4':
 				uuidsList.append(checkUuid)
-				addFlagToUuid(checkUuid, 'fromplayer', True)
+				util.addFlagToUuid(checkUuid, 'fromplayer', True)
 
 	for possibleRoute in possibleRoutes:
 		routeVal = getVal(apiData, possibleRoute)
@@ -584,22 +573,6 @@ def findUuids(apiData):
 					possibleUuid(dictVal)
 
 	return uuidsList
-
-def addFlagToUuid(uuidTo, flagTo, flagVal):
-	try:
-		database.playersCol.insert_one({'_id': uuidTo, 'persist': {flagTo: flagVal}})
-		return True
-	except:
-		playerDoc = database.playersCol.find_one({'_id': uuidTo})
-		if 'persist' in playerDoc:
-			playerDoc['persist'][flagTo] = flagVal
-		else:
-			playerDoc['persist'] = {}
-			playerDoc['persist'][flagTo] = flagVal
-		database.playersCol.replace_one({'_id': uuidTo}, playerDoc)
-		if flagTo == 'frompanda':
-			database.itemsCol.update_many({'owner':uuidTo}, {'$set':{'frompanda': True}})
-		return False
 
 def getVal(theDict, thePath):
 	try:
@@ -686,8 +659,13 @@ def doLoop():
 		curTime = time.time()
 
 		if random.randint(1, 256) == 1:
+			print('	randomly adding panda leaderboard page')
 			addPandaLeaderboardPage()
+			return
 
+		if random.randint(1, 256) == 1:
+			print('	randomly adding friends')
+			addNewFriends()
 			return
 
 		indexTypes = genIndexTypes()

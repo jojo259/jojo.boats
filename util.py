@@ -45,13 +45,29 @@ def prettyTimeStr(theTime):
 	else:
 		return f'{timeDiff} {timeWord} ago'
 
+def addFlagToUuid(uuidTo, flagTo, flagVal):
+	try:
+		database.playersCol.insert_one({'_id': uuidTo, 'persist': {flagTo: flagVal}})
+		return True
+	except:
+		playerDoc = database.playersCol.find_one({'_id': uuidTo})
+		if 'persist' in playerDoc:
+			playerDoc['persist'][flagTo] = flagVal
+		else:
+			playerDoc['persist'] = {flagTo: flagVal}
+		database.playersCol.replace_one({'_id': uuidTo}, playerDoc)
+		if flagTo == 'frompanda':
+			database.itemsCol.update_many({'owner':uuidTo}, {'$set':{'frompanda': True}})
+			database.mysticsCol.update_many({'item.owner':uuidTo}, {'$set':{'item.frompanda': True}})
+		return False
+
 def uuidToInt(uuid):
 	uuid = uuid.replace('-', '') # remove potential dashes
 	uuid = uuid[:12] # limit chars to save space (chance of collision is still literally zero)
 	uuid = int(uuid, 16)
 	return uuid
 
-def intToUuid(uuid):
+def intToShortenedUuid(uuid):
 	uuid = str(hex(uuid))[2:]
 	return uuid
 
@@ -92,42 +108,23 @@ def findFriendsPath(uuidA, uuidB):
 
 			print(f'checking {atLoop + 1} uuid {atUuid} getting from api')
 
-			fullUuid = getFullUuid(intToUuid(atUuid))
+			fullUuid = getFullUuid(intToShortenedUuid(atUuid))
 
 			if fullUuid == None:
 				print(f'full uuid not found for {atUuid}')
 				continue
 
-			indexertasker.pauseUntil = time.time() + 5
-			apiUrl = f'https://api.hypixel.net/friends?key={config.hypixelApiKey}&uuid={fullUuid}'
-			apiGot = {'success': False}
-			while apiGot.get('success', False) == False:
-				apiGot = requests.get(apiUrl, timeout = 3).json()
-				if apiGot.get('success', False) == False:
-					time.sleep(1)
-
-			for friendRecord in apiGot.get('records', []):
-
-				uuidOne = uuidToInt(friendRecord.get('uuidSender'))
-				uuidTwo = uuidToInt(friendRecord.get('uuidReceiver'))
-
-				otherUuid = uuidOne if uuidOne != atUuid else uuidTwo
-
-				uuidFriends.append(otherUuid)
-
-		friendsDoc = {'_id': atUuid, 'friends': []}
+			uuidFriends = getFriendsFor(fullUuid, intifyFriends = True)
+			if uuidFriends == None:
+				uuidFriends = []
 
 		for friendUuid in uuidFriends:
 
 			if friendUuid not in checkedUuids:
 				uuidsCheckQueue.append(friendUuid)
-			friendsDoc['friends'].append(friendUuid)
 
 			if friendUuid not in friendRoutes:
 				friendRoutes[friendUuid] = atUuid
-
-		if docGot == None:
-			database.friendsCol.replace_one({'_id': atUuid}, friendsDoc, upsert = True)
 
 		if uuidToInt(uuidB[:12]) in uuidFriends:
 			break
@@ -140,7 +137,55 @@ def findFriendsPath(uuidA, uuidB):
 
 	friendPath = list(reversed(friendPath))
 
-	friendPath = list(map(lambda x: intToUuid(x), friendPath))
-	friendPath = list(map(lambda x: getFullUuid(x), friendPath))
+	friendPath = list(map(lambda x: getFullUuid(intToShortenedUuid(x)), friendPath))
 
 	return friendPath
+
+def getFriendsFor(playerUuid, intifyFriends = False):
+
+	uuidInt = uuidToInt(playerUuid)
+
+	docGot = database.friendsCol.find_one({'_id': uuidInt})
+
+	if docGot != None:
+		playerFriendsInts = docGot['friends']
+		if intifyFriends:
+			return playerFriendsInts
+		else:
+			return list(map(lambda x: getFullUuid(intToShortenedUuid(x)), playerFriendsInts))
+
+	indexertasker.apiQueriesThisMinute += 1
+
+	apiUrl = f'https://api.hypixel.net/friends?key={config.hypixelApiKey}&uuid={playerUuid}'
+	try:
+		apiGot = requests.get(apiUrl, timeout = 3).json()
+	except Exception as e:
+		print(f'getFriendsFor error: {e}')
+		return None
+
+	playerFriends = []
+
+	for friendRecord in apiGot.get('records', []):
+
+		uuidOne = friendRecord['uuidSender']
+		uuidTwo = friendRecord['uuidReceiver']
+
+		otherUuid = uuidOne if uuidOne != playerUuid else uuidTwo
+
+		playerFriends.append(otherUuid)
+
+	# add to database
+
+	playerFriendsInts = list(map(lambda x: uuidToInt(x), playerFriends))
+
+	friendsDoc = {'_id': uuidInt, 'friends': playerFriendsInts}
+	database.friendsCol.replace_one({'_id': uuidInt}, friendsDoc, upsert = True)
+
+	addFlagToUuid(playerUuid, 'checkedfriends', True)
+
+	# return results
+
+	if intifyFriends:
+		return playerFriendsInts
+	else:
+		return playerFriends
