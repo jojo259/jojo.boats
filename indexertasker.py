@@ -7,6 +7,7 @@ from flask_apscheduler import APScheduler
 
 import indexer
 import config
+import discordsender
 
 logging.getLogger('apscheduler').setLevel(logging.ERROR) # disable useless logs
 
