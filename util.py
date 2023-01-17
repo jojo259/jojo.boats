@@ -170,6 +170,7 @@ def getFriendsFor(playerUuid, intifyFriends = False):
 		return None
 
 	playerFriends = []
+	batchedOtherFriendDocAdds = []
 
 	for friendRecord in apiGot.get('records', []):
 
@@ -180,7 +181,12 @@ def getFriendsFor(playerUuid, intifyFriends = False):
 
 		playerFriends.append(otherUuid)
 
+		batchedOtherFriendDocAdds.append(pymongo.UpdateOne({'_id': uuidToInt(otherUuid)}, {'$addToSet': {'friends': uuidInt}}, upsert = True))
+
 	# add to database
+
+	if len(batchedOtherFriendDocAdds) > 0:
+		database.friendsCol.bulk_write(batchedOtherFriendDocAdds)
 
 	playerFriendsInts = list(map(lambda x: uuidToInt(x), playerFriends))
 
