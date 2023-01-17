@@ -142,6 +142,9 @@ def getFriendsFor(playerUuid, intifyFriends = False):
 		else:
 			return list(map(lambda x: getFullUuid(intToShortenedUuid(x)), playerFriendsInts))
 
+	while indexertasker.apiQueriesThisMinute >= 120:
+		time.sleep(1)
+
 	indexertasker.apiQueriesThisMinute += 1
 
 	apiUrl = f'https://api.hypixel.net/friends?key={config.hypixelApiKey}&uuid={playerUuid}'

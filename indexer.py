@@ -21,6 +21,7 @@ import database
 import discordsender
 import indexerstats
 import util
+import indexertasker
 
 print('connecting')
 
@@ -66,7 +67,7 @@ def replaceColors(repStr):
 		print(e)
 		return ''
 
-def addNewFriends():
+def addNewFriends(checkUuid = None):
 	def findNewFriendUuid():
 		newFriendToCheckDoc = database.playersCol.find_one({'$or':[{'persist.checkedfriends': {'$exists': False}}, {'persist.checkedfriends': False}]})
 		if newFriendToCheckDoc != None:
@@ -91,7 +92,8 @@ def addNewFriends():
 
 		util.addFlagToUuid(checkUuid, 'checkedfriends', True)
 
-	checkUuid = findNewFriendUuid()
+	if checkUuid == None:
+		checkUuid = findNewFriendUuid()
 
 	addFriends(checkUuid)
 
@@ -228,6 +230,12 @@ def indexPlayer(givenUuid):
 			if playerDoc != None:
 				if getVal(playerDoc, ['persist', 'frompanda']) == True:
 					playerFromPanda = True
+
+			# add player's friends if not already checked
+
+			if playerDoc != None:
+				if playerDoc.get('persist', {}).get('checkedfriends') != True and indexertasker.apiQueriesThisMinute < 120:
+					addNewFriends(checkUuid = playerUuid)
 
 			#print(f'insertedItems {int((time.time() - loopTimer) * 1000)}ms')
 
