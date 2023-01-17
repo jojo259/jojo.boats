@@ -89,7 +89,7 @@ def findFriendsPath(uuidA, uuidB):
 	for atLoop in range(4096):
 
 		if len(uuidsCheckQueue) == 0:
-			return 'no more uuids to check'
+			return None
 
 		atUuid = uuidsCheckQueue.pop(0)
 
