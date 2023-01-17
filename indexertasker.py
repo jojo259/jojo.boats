@@ -1,5 +1,6 @@
 import time
 import logging
+import traceback
 
 from flask import Flask
 from flask_apscheduler import APScheduler
@@ -30,32 +31,39 @@ def indexerTask():
 	global apiQueriesThisMinute
 	global apiQueriesCurMinute
 
-	print(f'done {apiQueriesThisMinute} api queries this minute')
+	try:
 
-	curMinute = int(time.time() / 60)
-	if curMinute != apiQueriesCurMinute:
-		apiQueriesCurMinute = int(time.time() / 60)
-		apiQueriesThisMinute = 0
+		print(f'done {apiQueriesThisMinute} api queries this minute')
 
-	if apiQueriesThisMinute >= 120:
-		return
+		curMinute = int(time.time() / 60)
+		if curMinute != apiQueriesCurMinute:
+			apiQueriesCurMinute = int(time.time() / 60)
+			apiQueriesThisMinute = 0
 
-	if time.time() < pauseUntil:
-		return
+		if apiQueriesThisMinute >= 120:
+			return
 
-	apiQueriesThisMinute += 1
+		if time.time() < pauseUntil:
+			return
 
-	if len(indexerQueue) > 0:
-		indexerQueue = list(dict.fromkeys(indexerQueue)) # remove duplicates
-		curQueued = indexerQueue[0]
-		indexerQueue = indexerQueue[1:]
-		print(f'indexing queued player {curQueued}')
-		indexer.indexPlayer(curQueued)
-	else:
-		print('doing regular indexer loop')
-		indexer.doLoop()
+		apiQueriesThisMinute += 1
 
-	print('done indexer task')
+		if len(indexerQueue) > 0:
+			indexerQueue = list(dict.fromkeys(indexerQueue)) # remove duplicates
+			curQueued = indexerQueue[0]
+			indexerQueue = indexerQueue[1:]
+			print(f'indexing queued player {curQueued}')
+			indexer.indexPlayer(curQueued)
+		else:
+			print('doing regular indexer loop')
+			indexer.doLoop()
+
+		print('done indexer task')
+
+	except Exception as e:
+		print(f'error doLoop {e}')
+		stackTraceStr = traceback.format_exc()
+		discordsender.sendDiscord(stackTraceStr, config.webhookUrlErrors)
 
 scheduler.add_job(id = 'indexer task', func = indexerTask, trigger = "interval", seconds = secondsPerIndexerTask)
 scheduler.start()
