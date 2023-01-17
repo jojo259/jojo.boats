@@ -9,9 +9,12 @@ import config
 
 logging.getLogger('apscheduler').setLevel(logging.ERROR) # disable useless logs
 
+apiQueriesThisMinute = 0
+apiQueriesCurMinute = 0
+
 pauseUntil = 0
 
-secondsPerIndexerTask = 0.5
+secondsPerIndexerTask = 0.1
 if config.debugMode:
 	secondsPerIndexerTask = 99999
 
@@ -24,11 +27,23 @@ def addToIndexerQueue(toAdd):
 
 def indexerTask():
 	global indexerQueue
+	global apiQueriesThisMinute
+	global apiQueriesCurMinute
+
+	print(f'done {apiQueriesThisMinute} api queries this minute')
+
+	curMinute = int(time.time() / 60)
+	if curMinute != apiQueriesCurMinute:
+		apiQueriesCurMinute = int(time.time() / 60)
+		apiQueriesThisMinute = 0
+
+	if apiQueriesThisMinute >= 120:
+		return
 
 	if time.time() < pauseUntil:
 		return
 
-	print('doing indexer task')
+	apiQueriesThisMinute += 1
 
 	if len(indexerQueue) > 0:
 		indexerQueue = list(dict.fromkeys(indexerQueue)) # remove duplicates
@@ -42,5 +57,5 @@ def indexerTask():
 
 	print('done indexer task')
 
-scheduler.add_job(id = 'Scheduled Task', func=indexerTask, trigger="interval", seconds=secondsPerIndexerTask)
+scheduler.add_job(id = 'indexer task', func = indexerTask, trigger = "interval", seconds = secondsPerIndexerTask)
 scheduler.start()
