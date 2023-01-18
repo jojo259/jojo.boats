@@ -117,6 +117,12 @@ def addPandaLeaderboardPage():
 			print(f'NEW panda {playerUuid}')
 
 def indexPlayer(givenUuid):
+
+	if givenUuid == None:
+		print('	wtf null uuid, deleting') # seems to come from friends lists occasionally
+		database.playersCol.delete_one({'_id': None})
+		return
+
 	if '-' in givenUuid:
 		print('	banned char, deleting uuid from database.playersCol')
 		database.playersCol.delete_one({'_id': givenUuid})
