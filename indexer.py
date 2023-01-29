@@ -67,36 +67,6 @@ def replaceColors(repStr):
 		print(e)
 		return ''
 
-def addNewFriends(checkUuid = None):
-	def findNewFriendUuid():
-		newFriendToCheckDoc = database.playersCol.find_one({'$or':[{'persist.checkedfriends': {'$exists': False}}, {'persist.checkedfriends': False}]})
-		if newFriendToCheckDoc != None:
-			newFriendToCheckDocUuid = newFriendToCheckDoc['_id']
-			return newFriendToCheckDoc['_id']
-		print('couldnt find new friend to check uuid, doing jojo') # hopefully jojo always has some friends
-		return '1f2e58ced9164d55bd3fa7f4a81dd09f'
-
-	def addFriends(checkUuid):
-		playerFriends = util.getFriendsFor(checkUuid)
-
-		if playerFriends == None: # failed
-			return
-
-		newUuidsAdded = 0
-		for friendUuid in playerFriends:
-			addedFriend = util.addFlagToUuid(friendUuid, 'fromfriends', True)
-			if addedFriend:
-				newUuidsAdded += 1
-
-		print(f'added friends from {checkUuid}: {newUuidsAdded}')
-
-		util.addFlagToUuid(checkUuid, 'checkedfriends', True)
-
-	if checkUuid == None:
-		checkUuid = findNewFriendUuid()
-
-	addFriends(checkUuid)
-
 def addPandaLeaderboardPage():
 	global curPandaLeaderboardPage
 
@@ -238,10 +208,11 @@ def indexPlayer(givenUuid):
 					playerFromPanda = True
 
 			# add player's friends if not already checked
+			# SWITCH TO GUILD
 
-			if playerDoc != None:
-				if playerDoc.get('persist', {}).get('checkedfriends') != True and indexertasker.apiQueriesThisMinute < 120:
-					addNewFriends(checkUuid = playerUuid)
+			#if playerDoc != None:
+			#	if playerDoc.get('persist', {}).get('checkedfriends') != True and indexertasker.apiQueriesThisMinute < 120:
+			#		addNewFriends(checkUuid = playerUuid)
 
 			#print(f'insertedItems {int((time.time() - loopTimer) * 1000)}ms')
 
@@ -664,11 +635,6 @@ def doLoop():
 		addPandaLeaderboardPage()
 		return
 
-	if random.randint(1, 256) == 1:
-		print('	randomly adding friends')
-		addNewFriends()
-		return
-
 	indexTypes = genIndexTypes()
 
 	doneIndex = False
@@ -697,10 +663,6 @@ def doLoop():
 		indexerstats.incStat('indexedplayers')
 
 		break
-
-	if not doneIndex:
-		print('	no index completed, adding new friends')
-		addNewFriends()
 
 	indexedTimes.append(curTime)
 	indexedTimes = list(filter(lambda x: x > curTime - 60, indexedTimes))
