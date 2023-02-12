@@ -44,9 +44,9 @@ def getHypixelApi(urlToGet):
 			if apiGot.get('success') == True:
 				return apiGot
 		except Exception as e:
-			print(f'getHypixelApi {e}')
+			print(f'getHypixelApi{urlToGet} {e}')
 		time.sleep(1)
-	print('getHypixelApi error')
+	print(f'getHypixelApi {urlToGet} error')
 	return {'success': False}
 
 def replaceColors(repStr):
