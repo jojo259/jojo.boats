@@ -30,6 +30,7 @@ selfcheckout max_bounty_self_claim
 dj double_jump
 doublejump double_jump
 lodbrok increase_armor_drops
+lodbrock increase_armor_drops
 bts melee_damage_vs_bows
 beatthespammers melee_damage_vs_bows
 sw streak_xp
@@ -164,7 +165,9 @@ pb pullbow
 pull pullbow
 tele telebow
 bil melee_literally_p2w
+bili melee_literally_p2w
 bill melee_literally_p2w
+billi melee_literally_p2w
 billionaire melee_literally_p2w
 knock melee_knockback
 knockback melee_knockback
@@ -179,6 +182,7 @@ bottomlessquiver gain_arrows_on_hit
 grandmaster rod_true_damage
 fs first_shot
 firstshot first_shot
+gut melee_heal_on_kill
 guts melee_heal_on_kill
 revengeance melee_avenge
 ftts bow_combo_speed
