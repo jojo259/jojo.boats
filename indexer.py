@@ -86,6 +86,23 @@ def addPandaLeaderboardPage():
 		if addedNew:
 			print(f'NEW panda {playerUuid}')
 
+def addNewGuildMembers(playerUuid):
+
+	apiUrl = f'https://api.hypixel.net/guild?key={config.hypixelApiKey}&player={playerUuid}'
+	apiGot = getHypixelApi(apiUrl)
+
+	playerGuild = apiGot.get('guild', {})
+	if playerGuild == None:
+		print('		player has no guild')
+		return
+
+	for memberData in playerGuild.get('members', []):
+		memberUuid = memberData.get('uuid', '')
+		print(f'		found guild member {memberUuid}')
+		util.addFlagToUuid(memberUuid, 'fromguild', True)
+
+	util.addFlagToUuid(playerUuid, 'checkedguild', True)
+
 def indexPlayer(givenUuid):
 
 	if givenUuid == None:
@@ -207,12 +224,11 @@ def indexPlayer(givenUuid):
 				if getVal(playerDoc, ['persist', 'frompanda']) == True:
 					playerFromPanda = True
 
-			# add player's friends if not already checked
-			# SWITCH TO GUILD
+			# add player's guild members if not already checked
 
-			#if playerDoc != None:
-			#	if playerDoc.get('persist', {}).get('checkedfriends') != True and indexertasker.apiQueriesThisMinute < 120:
-			#		addNewFriends(checkUuid = playerUuid)
+			if playerDoc != None:
+				if playerDoc.get('persist', {}).get('checkedguild') != True and indexertasker.apiQueriesThisMinute < 120:
+					addNewGuildMembers(playerUuid)
 
 			#print(f'insertedItems {int((time.time() - loopTimer) * 1000)}ms')
 
