@@ -363,10 +363,10 @@ def mysticSearchRoute(queryStr):
 
 		# check for the SECOND most special param, owner, which has a string value
 
-		if curParam.startswith('uuid') or curParam.startswith('owner'):
+		if curParam.startswith('uuid'):
 
 			print(f'	curParam owner {curParam}')
-			playerUuid = curParam.replace('uuid', '').replace('owner', '')
+			playerUuid = curParam[4:]
 			if len(playerUuid) != 32:
 				playerUuid = getPlayerUuid(playerUuid)
 			dbQueryAnds.append({'item.owner': playerUuid})
@@ -377,7 +377,7 @@ def mysticSearchRoute(queryStr):
 		if curParam.startswith('past'):
 
 			print(f'	curParam past {curParam}')
-			playerUuid = curParam.replace('past', '')
+			playerUuid = curParam[4:]
 			if len(playerUuid) != 32:
 				playerUuid = getPlayerUuid(playerUuid)
 			dbQueryAnds.append({'owners.uuid': playerUuid})
@@ -388,14 +388,13 @@ def mysticSearchRoute(queryStr):
 		if curParam.startswith('key'):
 
 			print(f'	curParam key {curParam}')
-
-			givenKey = curParam.replace('key', '')
-
+			givenKey = curParam[3:]
 			if givenKey == config.jojoKey:
 				if {'item.frompanda': True} in dbQueryAnds:
 					dbQueryAnds.remove({'item.frompanda': True})
 				if givenKey == config.jojoKey + 'no':
 					dbQueryAnds.append({'item.frompanda': {'$exists': False}})
+			continue
 
 		# next check for the special params, which have number values
 
