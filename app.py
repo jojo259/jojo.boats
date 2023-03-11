@@ -383,6 +383,20 @@ def mysticSearchRoute(queryStr):
 			dbQueryAnds.append({'owners.uuid': playerUuid})
 			continue
 
+		# also key for special privileges
+
+		if curParam.startswith('key'):
+
+			print(f'	curParam key {curParam}')
+
+			givenKey = curParam.replace('key', '')
+
+			if givenKey == config.jojoKey:
+				if {'item.frompanda': True} in dbQueryAnds:
+					dbQueryAnds.remove({'item.frompanda': True})
+				if givenKey == config.jojoKey + 'no':
+					dbQueryAnds.append({'item.frompanda': {'$exists': False}})
+
 		# next check for the special params, which have number values
 
 		paramKey, paramVal, paramOperator = getEnchantKeyValueOperator(curParam)
