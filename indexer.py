@@ -190,6 +190,13 @@ def indexPlayer(givenUuid):
 			#addToUpsert(playerRankPlusColor, 'rankpluscolor')
 			addToUpsert(playerPrefix, 'prefix')
 
+			lastSave = getVal(apiGot, ['player', 'stats', 'Pit', 'profile', 'last_save'])
+
+			if lastSave != None:
+				lastSave = int(lastSave / 1000)
+			if lastSave == None:
+				lastSave = 0
+
 			#print(f'	deletingMany')
 
 			deletedItems = database.itemsCol.delete_many({'owner': playerUuid})
