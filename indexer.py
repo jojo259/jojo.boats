@@ -190,19 +190,6 @@ def indexPlayer(givenUuid):
 			#addToUpsert(playerRankPlusColor, 'rankpluscolor')
 			addToUpsert(playerPrefix, 'prefix')
 
-			lastSave = getVal(apiGot, ['player', 'stats', 'Pit', 'profile', 'last_save'])
-
-			if lastSave != None:
-				lastSave = int(lastSave / 1000)
-			if lastSave == None:
-				lastSave = 0
-
-			addToUpsert(lastSave, 'lastsave')
-
-			playerXp = getVal(apiGot, ['player', 'stats', 'Pit', 'profile', 'xp'])
-
-			addToUpsert(playerXp, 'xp')
-
 			#print(f'	deletingMany')
 
 			deletedItems = database.itemsCol.delete_many({'owner': playerUuid})
@@ -280,8 +267,6 @@ def indexPlayer(givenUuid):
 
 				itemTokens = 0
 				if itemPitEnchants != None:
-					addToUpsert(True, 'hasmystics')
-
 					for curEnchant in itemPitEnchants:
 						itemTokens += curEnchant['Level']
 
