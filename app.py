@@ -144,7 +144,9 @@ def itemReq(page):
 
 		itemsFound = map(itemFormat, itemsFound)
 
-		return render_template('items.html', content = {'items': itemsFound, 'count': itemsFoundCount})
+		import datetime
+
+		return render_template('items.html', content = {'items': itemsFound, 'count': itemsFoundCount}, timestamp = "timestamp: " + str(datetime.datetime.utcnow()))
 	except Exception as e:
 		print(e)
 		return 'error moment'
